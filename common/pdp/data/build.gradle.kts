@@ -43,7 +43,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.poroshin.rut.ar.pdp.data"
+    namespace = "com.poroshin.rut.ar.common.pdp.data"
     compileSdk = 34
     defaultConfig {
         minSdk = 24
