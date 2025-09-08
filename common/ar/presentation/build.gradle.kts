@@ -33,7 +33,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.poroshin.rut.ar.ar.presentation"
+    namespace = "com.poroshin.rut.ar.common.ar.presentation"
     compileSdk = 34
     defaultConfig {
         minSdk = 24
