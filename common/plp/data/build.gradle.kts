@@ -43,7 +43,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.poroshin.rut.ar.plp.data"
+    namespace = "com.poroshin.rut.ar.common.plp.data"
     compileSdk = 34
     defaultConfig {
         minSdk = 24
