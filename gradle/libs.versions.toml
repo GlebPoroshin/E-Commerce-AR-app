@@ -12,12 +12,16 @@ androidx-activityCompose = "1.8.0"
 lifecycleViewmodelCompose = "2.9.1"
 
 [libraries]
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
+
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycleViewmodelCompose" }
+androidx-lifecycle-runtime  = { group = "androidx.lifecycle", name = "lifecycle-runtime",  version.ref = "lifecycleViewmodelCompose" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelCompose" } # опционально для Android
+
 
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }

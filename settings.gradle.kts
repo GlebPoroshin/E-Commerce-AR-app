@@ -19,6 +19,7 @@ include(":androidApp")
 
 include(":common")
 
+include(":common:mvi")
 include(":common:umbrella")
 
 include(":common:plp:domain")
