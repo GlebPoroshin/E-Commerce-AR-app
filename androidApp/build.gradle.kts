@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.poroshin.rut.ar.android"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig {
         applicationId = "com.poroshin.rut.ar.android"
         minSdk = 24
@@ -37,7 +37,8 @@ android {
 }
 
 dependencies {
-    api(projects.common.umbrella)
+    implementation(projects.common.umbrella)
+    implementation(libs.koin.androidx.compose)
 
     implementation(projects.common)
     implementation(libs.compose.ui)
