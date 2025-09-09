@@ -12,4 +12,7 @@ fun initKoinIos(additionalModules: List<Module> = emptyList()) {
     }
 }
 
+// Convenience alias to match tutorial naming in Swift
+fun doInitKoin() = initKoinIos()
+
 
