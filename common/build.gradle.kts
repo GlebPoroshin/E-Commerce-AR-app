@@ -31,6 +31,12 @@ kotlin {
             isStatic = true
         }
     }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.koin.core)
+        }
+    }
 }
 
 android {
