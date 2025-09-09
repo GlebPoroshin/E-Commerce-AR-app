@@ -16,7 +16,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "E-Commerce_AR_app"
 include(":androidApp")
+
 include(":common")
+
+include(":common:umbrella")
 
 include(":common:plp:domain")
 include(":common:plp:data")
