@@ -32,6 +32,9 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.androidx.compose.material3)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.foundation)
+            implementation(libs.androidx.fragment)
         }
     }
 }
