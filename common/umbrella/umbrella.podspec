@@ -1,23 +1,23 @@
 Pod::Spec.new do |spec|
-    spec.name                     = 'common'
-    spec.version                  = '1.0'
-    spec.homepage                 = 'Link to the Shared Module homepage'
+    spec.name                     = 'umbrella'
+    spec.version                  = '1.0.0'
+    spec.homepage                 = 'https://example'
     spec.source                   = { :http=> ''}
     spec.authors                  = ''
     spec.license                  = ''
-    spec.summary                  = 'Some description for the Shared Module'
-    spec.vendored_frameworks      = 'build/cocoapods/framework/common.framework'
+    spec.summary                  = 'App KMM framework'
+    spec.vendored_frameworks      = 'build/cocoapods/framework/ARApp.framework'
     spec.libraries                = 'c++'
     spec.ios.deployment_target    = '16.0'
                 
                 
-    if !Dir.exist?('build/cocoapods/framework/common.framework') || Dir.empty?('build/cocoapods/framework/common.framework')
+    if !Dir.exist?('build/cocoapods/framework/ARApp.framework') || Dir.empty?('build/cocoapods/framework/ARApp.framework')
         raise "
 
-        Kotlin framework 'common' doesn't exist yet, so a proper Xcode project can't be generated.
+        Kotlin framework 'ARApp' doesn't exist yet, so a proper Xcode project can't be generated.
         'pod install' should be executed after running ':generateDummyFramework' Gradle task:
 
-            ./gradlew :common:generateDummyFramework
+            ./gradlew :common:umbrella:generateDummyFramework
 
         Alternatively, proper pod installation is performed during Gradle sync in the IDE (if Podfile location is set)"
     end
@@ -27,13 +27,13 @@ Pod::Spec.new do |spec|
     }
                 
     spec.pod_target_xcconfig = {
-        'KOTLIN_PROJECT_PATH' => ':common',
-        'PRODUCT_MODULE_NAME' => 'common',
+        'KOTLIN_PROJECT_PATH' => ':common:umbrella',
+        'PRODUCT_MODULE_NAME' => 'ARApp',
     }
                 
     spec.script_phases = [
         {
-            :name => 'Build common',
+            :name => 'Build umbrella',
             :execution_position => :before_compile,
             :shell_path => '/bin/sh',
             :script => <<-SCRIPT
@@ -43,7 +43,7 @@ Pod::Spec.new do |spec|
                 fi
                 set -ev
                 REPO_ROOT="$PODS_TARGET_SRCROOT"
-                "$REPO_ROOT/../gradlew" -p "$REPO_ROOT" :common:podGenIos :common:podDebugIosFatFramework :common:podReleaseIosFatFramework \
+                "$REPO_ROOT/../../gradlew" -p "$REPO_ROOT" $KOTLIN_PROJECT_PATH:syncFramework \
                     -Pkotlin.native.cocoapods.platform=$PLATFORM_NAME \
                     -Pkotlin.native.cocoapods.archs="$ARCHS" \
                     -Pkotlin.native.cocoapods.configuration="$CONFIGURATION"

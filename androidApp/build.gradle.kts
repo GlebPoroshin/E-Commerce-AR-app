@@ -38,14 +38,23 @@ android {
 
 dependencies {
     implementation(projects.common.umbrella)
-    implementation(libs.koin.androidx.compose)
 
-    implementation(projects.common)
+    implementation(projects.common.pdp.presentation)
+    implementation(projects.common.plp.presentation)
+    implementation(projects.common.ar.presentation)
+
+    implementation(projects.common.pdp.domain)
+    implementation(projects.common.plp.domain)
+    implementation(projects.common.ar.domain)
+
     implementation(libs.compose.ui)
+    implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.compose.ui.tooling.preview)
+
+    implementation(libs.koin.androidx.compose)
 
     debugImplementation(libs.compose.ui.tooling)
 }

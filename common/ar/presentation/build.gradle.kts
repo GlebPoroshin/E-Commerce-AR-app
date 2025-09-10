@@ -3,7 +3,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.compose.compiler)
+    if (System.getenv("XCODE_APP_SUPPORT_DIR") == null) {
+        alias(libs.plugins.compose.compiler)
+        id("org.jetbrains.compose") version "1.10.0-alpha01"
+    }
 }
 
 kotlin {
@@ -22,12 +25,23 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
+            implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.compose.runtime)
             implementation(libs.androidx.compose.material3)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+        }
+
+
+        jvmMain {
+            dependencies {
+                // Необходимо для сборки jmv модуля, так как применен jetpack compose plugin
+//                implementation(
+//                    "org.jetbrains.compose.desktop:desktop:${org.jetbrains.compose.ComposeBuildConfig.composeVersion}",
+//                )
+            }
         }
     }
 }
