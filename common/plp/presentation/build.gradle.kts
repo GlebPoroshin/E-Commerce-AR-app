@@ -27,6 +27,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(projects.common.mvi)
         }
         androidMain.dependencies {
             implementation(libs.compose.runtime)
