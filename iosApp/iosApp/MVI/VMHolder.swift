@@ -9,11 +9,11 @@
 import ARApp
 import Foundation
 
-/// Специализированная обёртка для KMM `SharedViewModel`.
+/// Специализированная обёртка для KMM `SharedViewModel<S, E, A>`.
 /// - Автоматически биндит `viewState: StateFlow` и `viewAction: SharedFlow` к Swift замыканиям.
 /// - Позволяет отправлять события в KMM через `sendEvent(_:)`.
 /// - Управляет жизненным циклом подписок через `DisposableHandle`.
-final class SharedVMHolder<VM: SharedViewModel, State: AnyObject, Action: AnyObject, Event: AnyObject>: ObservableObject {
+final class SharedVMHolder<State: AnyObject, Event: AnyObject, Action: AnyObject, VM: SharedViewModel<State, Event, Action>>: ObservableObject {
     let viewModel: VM
     @Published private(set) var state: State
     private var disposableHandle: Kotlinx_coroutines_coreDisposableHandle?
