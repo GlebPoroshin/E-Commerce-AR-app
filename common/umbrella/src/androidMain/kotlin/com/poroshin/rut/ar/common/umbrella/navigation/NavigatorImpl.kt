@@ -22,9 +22,9 @@ class NavigatorImpl : Navigator {
 
     private fun getFragmentScreen(key: NavigationTree, params: Bundle): Screen {
         return when (key) {
-            NavigationTree.Plp -> FragmentScreen { PlaceholderFragment.newInstance("PLP") }
-            NavigationTree.Pdp -> FragmentScreen { PlaceholderFragment.newInstance("PDP") }
-            NavigationTree.Ar -> FragmentScreen { PlaceholderFragment.newInstance("AR") }
+            NavigationTree.Plp -> FragmentScreen {  }
+            NavigationTree.Pdp -> FragmentScreen {  }
+            NavigationTree.Ar -> FragmentScreen {  }
         }
     }
 }
