@@ -8,7 +8,7 @@ Pod::Spec.new do |spec|
     spec.summary                  = 'App KMM framework'
     spec.vendored_frameworks      = 'build/cocoapods/framework/ARApp.framework'
     spec.libraries                = 'c++'
-    spec.ios.deployment_target    = '14.0'
+    spec.ios.deployment_target    = '16.0'
                 
                 
     if !Dir.exist?('build/cocoapods/framework/ARApp.framework') || Dir.empty?('build/cocoapods/framework/ARApp.framework')

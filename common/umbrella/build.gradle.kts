@@ -36,7 +36,6 @@ kotlin {
             implementation(libs.koin.core)
         }
         androidMain.dependencies {
-//            implementation(libs.koin.android)
             implementation(libs.androidx.lifecycle.runtime)
         }
         iosMain.dependencies {}
@@ -46,7 +45,7 @@ kotlin {
         summary = "App KMM framework"
         homepage = "https://example"
         version = "1.0.0"
-        ios.deploymentTarget = "14.0"
+        ios.deploymentTarget = "16.0"
         framework {
             baseName = "ARApp"
             isStatic = true
@@ -54,7 +53,6 @@ kotlin {
             export(project(":common:plp"))
             export(project(":common:pdp"))
             export(project(":common:ar"))
-            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutinesVersion.get()}")
         }
     }
 }

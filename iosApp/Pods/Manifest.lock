@@ -1,16 +1,16 @@
 PODS:
-  - common (1.0)
+  - umbrella (1.0.0)
 
 DEPENDENCIES:
-  - common (from `../common`)
+  - umbrella (from `../common/umbrella`)
 
 EXTERNAL SOURCES:
-  common:
-    :path: "../common"
+  umbrella:
+    :path: "../common/umbrella"
 
 SPEC CHECKSUMS:
-  common: 24d908c76c5488baf34e5a048017c914957a0faf
+  umbrella: bdd736bbb4793ba8829d0a882a52321e53278fd0
 
-PODFILE CHECKSUM: fe569049eac609965dd9ac80df58dae31c2daaa5
+PODFILE CHECKSUM: 403ab7f2933d5a5357094dbaf3f99fa88c7c07e3
 
 COCOAPODS: 1.16.2
