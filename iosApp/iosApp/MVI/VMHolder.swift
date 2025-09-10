@@ -9,48 +9,10 @@
 import ARApp
 import Foundation
 
-// MARK: - Generic VMHolder
-final class VMHolder<VM: AnyObject, State: AnyObject, Action: AnyObject>: ObservableObject {
-    let vm: VM
-
-    @Published private(set) var state: State
-    private var disposableHandle: Kotlinx_coroutines_coreDisposableHandle?
-
-    init(vm: VM, initialState: State) {
-        self.vm = vm
-        self.state = initialState
-    }
-
-    func start(
-        stateFlow: Kotlinx_coroutines_coreFlow,
-        actionFlow: Kotlinx_coroutines_coreFlow,
-        onAction: @escaping (Action) -> Void = { _ in }
-    ) {
-        disposableHandle = FlowWatchUtilsKt.bind(
-            state: stateFlow,
-            onState: { [weak self] newState in
-                if let typedState = newState as? State {
-                    DispatchQueue.main.async {
-                        self?.state = typedState
-                    }
-                }
-            },
-            action: actionFlow,
-            onAction: { action in
-                if let typedAction = action as? Action {
-                    onAction(typedAction)
-                }
-            }
-        )
-    }
-
-    func stop() {
-        disposableHandle?.dispose()
-        disposableHandle = nil
-    }
-}
-
-// MARK: - SharedViewModel VMHolder
+/// Специализированная обёртка для KMM `SharedViewModel`.
+/// - Автоматически биндит `viewState: StateFlow` и `viewAction: SharedFlow` к Swift замыканиям.
+/// - Позволяет отправлять события в KMM через `sendEvent(_:)`.
+/// - Управляет жизненным циклом подписок через `DisposableHandle`.
 final class SharedVMHolder<VM: SharedViewModel, State: AnyObject, Action: AnyObject, Event: AnyObject>: ObservableObject {
     let viewModel: VM
     @Published private(set) var state: State
