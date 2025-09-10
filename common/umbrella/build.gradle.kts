@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-     alias(libs.plugins.kotlinCocoapods)
+    alias(libs.plugins.kotlinCocoapods)
 }
 
 kotlin {
@@ -20,25 +20,37 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(projects.common.ar.data)
-            api(projects.common.ar.domain)
+            implementation(projects.common.ar.data)
+            implementation(projects.common.ar.domain)
             api(projects.common.ar.presentation)
-            api(projects.common.plp.data)
-            api(projects.common.plp.domain)
+
+            implementation(projects.common.plp.data)
+            implementation(projects.common.plp.domain)
             api(projects.common.plp.presentation)
-            api(projects.common.pdp.data)
-            api(projects.common.pdp.domain)
+
+            implementation(projects.common.pdp.data)
+            implementation(projects.common.pdp.domain)
             api(projects.common.pdp.presentation)
+
             api(projects.common.mvi)
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.koin.core)
         }
-        androidMain.dependencies {
-            implementation(libs.androidx.lifecycle.runtime)
+
+        iosMain.dependencies {
+            api(projects.common.ar.data)
+            api(projects.common.ar.domain)
+
+            api(projects.common.plp.data)
+            api(projects.common.plp.domain)
+
+            api(projects.common.pdp.data)
+            api(projects.common.pdp.domain)
+
+            api(projects.common.mvi)
         }
-        iosMain.dependencies {}
     }
 
     cocoapods {
@@ -49,10 +61,16 @@ kotlin {
         framework {
             baseName = "ARApp"
             isStatic = true
-            export(project(":common:mvi"))
-            export(project(":common:plp"))
-            export(project(":common:pdp"))
-            export(project(":common:ar"))
+            export(projects.common.mvi)
+
+            export(projects.common.ar.domain)
+            export(projects.common.ar.presentation)
+
+            export(projects.common.plp.domain)
+            export(projects.common.plp.presentation)
+
+            export(projects.common.pdp.domain)
+            export(projects.common.pdp.presentation)
         }
     }
 }
