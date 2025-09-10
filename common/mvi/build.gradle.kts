@@ -26,7 +26,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.poroshin.rut.ar.mvi"
+    namespace = "com.poroshin.rut.ar.common.mvi"
     compileSdk = 35
     defaultConfig { minSdk = 24 }
     compileOptions {
