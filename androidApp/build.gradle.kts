@@ -54,7 +54,12 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.compose.ui.tooling.preview)
 
+    implementation(libs.cicerone)
+
     implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.android)
+    implementation(libs.androidx.fragment)
+    implementation(libs.cicerone)
 
     debugImplementation(libs.compose.ui.tooling)
 }
