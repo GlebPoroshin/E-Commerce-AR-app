@@ -39,6 +39,11 @@ kotlin {
             implementation(libs.koin.core)
         }
 
+        androidMain.dependencies {
+            implementation(libs.cicerone)
+            implementation(libs.koin.android)
+        }
+
         iosMain.dependencies {
             api(projects.common.ar.data)
             api(projects.common.ar.domain)

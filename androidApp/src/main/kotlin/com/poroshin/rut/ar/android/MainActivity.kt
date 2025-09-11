@@ -1,67 +1,56 @@
 package com.poroshin.rut.ar.android
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.poroshin.rut.ar.android.ui.theme.MyApplicationTheme
-import com.poroshin.rut.ar.common.plp.presentation.PlpAction
-import com.poroshin.rut.ar.common.plp.presentation.PlpEvent
-import com.poroshin.rut.ar.common.plp.presentation.PlpState
-import com.poroshin.rut.ar.common.plp.presentation.PlpTestViewModel
-import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.viewinterop.AndroidView
+import android.view.View
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentContainerView
+import com.github.terrakok.cicerone.androidx.AppNavigator
+import com.github.terrakok.cicerone.NavigatorHolder
+import com.poroshin.rut.ar.common.umbrella.navigation.NavigationTree
+import com.poroshin.rut.ar.common.umbrella.navigation.Navigator
+import com.poroshin.rut.ar.common.umbrella.navigation.FlowRouter
+import org.koin.android.ext.android.inject
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
+
+    private val navigatorHolder: NavigatorHolder by inject()
+    private val navigator: Navigator by inject()
+    private val router: FlowRouter by inject()
+
+    private val containerId: Int = View.generateViewId()
+    private val appNavigator by lazy { AppNavigator(this, containerId) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyApplicationTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PlpScreen()
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    FragmentContainerView(context).apply {
+                        id = containerId
+                    }
+                },
+            )
+            LaunchedEffect(Unit) {
+                if (savedInstanceState == null) {
+                    navigator.newRootScreen(router, NavigationTree.Plp)
                 }
             }
         }
     }
-}
 
-@Composable
-private fun PlpScreen(vm: PlpTestViewModel = koinViewModel()) {
-    val state: PlpState by vm.viewState.collectAsState(initial = PlpState())
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(androidx.compose.ui.unit.dp(12))
-    ) {
-        Text(text = "Counter: ${'$'}{state.counter}")
-        Button(onClick = { vm.onEvent(PlpEvent.Increment) }) { Text("+") }
-        Button(onClick = { vm.onEvent(PlpEvent.Decrement) }) { Text("-") }
-
-        val action by vm.viewAction.collectAsState(initial = null)
-        when (action) {
-            is PlpAction.ShowLimitToast -> Text("Limit reached!")
-            else -> {}
-        }
+    override fun onResume() {
+        super.onResume()
+        navigatorHolder.setNavigator(appNavigator)
     }
-}
 
-@Preview
-@Composable
-private fun PlpScreenPreview() {
-    MyApplicationTheme {
-        PlpScreen(vm = PlpTestViewModel())
+    override fun onPause() {
+        navigatorHolder.removeNavigator()
+        super.onPause()
     }
 }
