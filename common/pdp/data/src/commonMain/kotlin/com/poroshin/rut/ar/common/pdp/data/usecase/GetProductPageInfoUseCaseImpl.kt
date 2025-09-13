@@ -4,7 +4,8 @@ import com.poroshin.rut.ar.common.pdp.data.currentOs
 import com.poroshin.rut.ar.common.pdp.domain.ArInfo
 import com.poroshin.rut.ar.common.pdp.domain.ArType
 import com.poroshin.rut.ar.common.pdp.domain.GetPdpParams
-import com.poroshin.rut.ar.common.pdp.domain.GetProductPageInfoUseCase
+import com.poroshin.rut.ar.common.pdp.domain.OsType
+import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
 import com.poroshin.rut.ar.common.pdp.domain.ProductPageInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -40,7 +41,8 @@ class GetProductPageInfoUseCaseImpl : GetProductPageInfoUseCase {
             deliveryInfo = "Доставим завтра",
             ar = ArInfo(
                 arType = ArType.OBJECT,
-                arRecourceUrl = arUrl
+                arRecourceUrl = arUrl,
+                version = 1,
             )
         )
     }
