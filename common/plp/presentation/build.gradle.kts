@@ -30,6 +30,7 @@ kotlin {
 
             implementation(projects.common.mvi)
             implementation(projects.common.plp.domain)
+            implementation(projects.common.pdp.domain)
         }
         androidMain.dependencies {
             implementation("io.coil-kt.coil3:coil-compose:3.2.0")

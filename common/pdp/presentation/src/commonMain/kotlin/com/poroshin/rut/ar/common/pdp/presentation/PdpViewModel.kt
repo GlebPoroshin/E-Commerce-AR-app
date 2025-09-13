@@ -69,6 +69,7 @@ class PdpViewModel(
                     }
                 }
             )
+            sendAction(PdpAction.OpenArViewer(sku))
         }
     }
 }

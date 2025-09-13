@@ -10,9 +10,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.github.terrakok.cicerone.Router
+import com.poroshin.rut.ar.common.core.NavigationTree
 import com.poroshin.rut.ar.common.core.Navigator
-import com.poroshin.rut.ar.common.plp.domain.PdpParams
-import com.poroshin.rut.ar.common.plp.domain.bundleAuto
+import com.poroshin.rut.ar.common.pdp.domain.PdpParams
 import com.poroshin.rut.ar.common.plp.presentation.model.PlpAction
 import com.poroshin.rut.ar.common.plp.presentation.model.PlpEvent
 import com.poroshin.rut.ar.common.plp.presentation.ui.PlpScreen
@@ -49,7 +49,7 @@ class PlpFragment : Fragment() {
                 when (action) {
                     is PlpAction.OpenPdp -> navigator.navigateTo(
                         router = router,
-                        key = com.poroshin.rut.ar.common.core.NavigationTree.Pdp,
+                        key = NavigationTree.Pdp,
                         params = PdpParams(action.sku).bundleAuto(),
                     )
                 }

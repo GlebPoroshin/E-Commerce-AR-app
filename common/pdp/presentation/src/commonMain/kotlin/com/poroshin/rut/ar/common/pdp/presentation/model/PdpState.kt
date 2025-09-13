@@ -11,5 +11,4 @@ sealed class PdpState : UiState {
         val product: ProductPageInfo,
     ) : PdpState()
 
-    data class Error(val message: String) : PdpState()
 }
