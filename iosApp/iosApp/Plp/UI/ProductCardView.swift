@@ -15,25 +15,12 @@ struct ProductCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            AsyncImage(url: URL(string: product.imageUrl)) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                default:
-                    Color.gray.opacity(0.2)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .aspectRatio(1, contentMode: .fit)
-            .clipped()
-
+            ProductImage(urlString: product.imageUrl)
             VStack(alignment: .leading, spacing: 6) {
                 Text(product.name)
                     .font(.headline)
                     .lineLimit(2)
-
+                    .layoutPriority(1)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(product.price) ₽")
                         .font(.headline).bold()
@@ -44,20 +31,46 @@ struct ProductCardView: View {
                             .strikethrough()
                     }
                 }
-
                 if product.rate > 0 {
                     Text("★ \(String(format: "%.1f", product.rate))")
                         .font(.subheadline)
                         .foregroundColor(.accentColor)
                 }
             }
+            .background(Color(uiColor: .secondarySystemBackground))
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
         }
         .contentShape(Rectangle())
-        .onTapGesture {
-            onTap(product.sku)
-        }
+        .onTapGesture { onTap(product.sku) }
+        .background(Color(uiColor: .secondarySystemBackground))
     }
 }
 
+struct ProductImage: View {
+    let urlString: String
+
+    var body: some View {
+        ZStack {
+            Color.white
+
+            AsyncImage(
+                url: URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? urlString)
+            ) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .clipped()
+                default:
+                    ShimmerBlock(corner: 0)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+}

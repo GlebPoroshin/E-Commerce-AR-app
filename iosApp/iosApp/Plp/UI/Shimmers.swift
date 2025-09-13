@@ -39,7 +39,7 @@ struct ShimmerView: View {
 }
 
 struct ShimmerBlock: View {
-    var height: CGFloat
+    var height: CGFloat? = nil
     var width: CGFloat? = nil
     var corner: CGFloat = 8
 

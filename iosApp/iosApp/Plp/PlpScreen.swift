@@ -15,20 +15,15 @@ struct PlpScreen: View {
         viewModel: PlpViewModel(),
         initialState: PlpState.Loading()
     )
-    @State private var path = NavigationPath()
+    @EnvironmentObject private var router: AppRouter
 
     var body: some View {
-        NavigationStack(path: $path) {
-            content
-                .navigationDestination(for: Int64.self) { sku in
-                    PdpScreen(sku: sku)
-                }
-        }
+        content
         .onAppear {
             holder.start { action in
                 switch action {
                 case let a as PlpAction.OpenPdp:
-                    path.append(a.sku)
+                    router.push(.productDetail(sku: a.sku))
                 default: break
                 }
             }
