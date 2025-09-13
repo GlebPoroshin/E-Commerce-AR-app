@@ -1,6 +1,8 @@
 package com.poroshin.rut.ar.common.pdp.data.usecase
 
-import com.poroshin.rut.ar.common.pdp.data.currentOs
+import com.poroshin.rut.ar.common.pdp.data.getDownloadPath
+import com.poroshin.rut.ar.common.pdp.data.objectModelType
+import com.poroshin.rut.ar.common.pdp.domain.ModelLoadException
 import com.poroshin.rut.ar.common.pdp.domain.repository.ModelRepository
 import com.poroshin.rut.ar.common.pdp.domain.usecase.DownloadProductModelUseCase
 import kotlinx.coroutines.Dispatchers
@@ -16,15 +18,24 @@ class DownloadProductModelUseCaseImpl(
         version: Int,
         onProgress: (received: Long, total: Long?) -> Unit,
     ) = withContext(Dispatchers.IO) {
-        val currentVersion = modelRepository.checkExistingModel(sku)
+        try {
+            val currentVersion = modelRepository.checkExistingModel(sku)
 
-        if (currentVersion == version) return@withContext
+            if (currentVersion == version) return@withContext
 
-        modelRepository.downLoadModel(
-            sku = sku,
-            url = url,
-            osType = currentOs(),
-            onProgress = onProgress,
-        )
+            val objectModelType = objectModelType()
+            val path = getDownloadPath( "ar/models/${sku}${objectModelType}")
+
+            modelRepository.downLoadModel(
+                sku = sku,
+                url = url,
+                path = path,
+                onProgress = onProgress,
+            )
+
+            modelRepository.saveModelVersion(sku, version)
+        } catch (e: Exception) {
+            throw ModelLoadException(e.message ?: "Произошла ошикбка : $e")
+        }
     }
 }

@@ -17,7 +17,7 @@ class RemoteModelDataSource(
     suspend fun downloadFile(
         url: String,
         dest: Path,
-        onProgress: (received: Long, total: Long?) -> Unit = { _, _ -> }
+        onProgress: (received: Long, total: Long?) -> Unit,
     ) {
         SystemFileSystem.createDirectories(dest.parent!!, mustCreate = false)
 
@@ -39,4 +39,6 @@ class RemoteModelDataSource(
             }
         }
     }
+
+    private val BUFFER = 64 * 1024
 }

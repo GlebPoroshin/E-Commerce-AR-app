@@ -15,6 +15,7 @@ fun featureModules(): List<Module> = listOf(
     plpDomainModule,
     plpPresentationModule,
     pdpDataModule,
+    pdpDataModule,
     pdpPresentationModule,
     arDataModule,
     arDomainModule,

@@ -3,7 +3,7 @@ package com.poroshin.rut.ar.common.pdp.presentation
 import androidx.lifecycle.viewModelScope
 import com.poroshin.rut.ar.common.mvi.SharedViewModel
 import com.poroshin.rut.ar.common.pdp.domain.GetPdpParams
-import com.poroshin.rut.ar.common.pdp.domain.GetProductPageInfoUseCase
+import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpAction
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpEvent
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpState

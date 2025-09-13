@@ -38,6 +38,7 @@ android {
 
 dependencies {
     implementation(projects.common.umbrella)
+    implementation(projects.common.pdp.data)
 
     implementation(projects.common.pdp.presentation)
     implementation(projects.common.plp.presentation)
