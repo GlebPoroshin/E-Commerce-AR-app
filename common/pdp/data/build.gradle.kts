@@ -28,13 +28,15 @@ kotlin {
             implementation(libs.runtime)
             implementation(libs.koin.core)
 
+            implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.io.core)
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
         }
         androidMain.dependencies {
             implementation(libs.android.driver)
