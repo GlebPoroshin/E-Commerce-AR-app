@@ -7,10 +7,15 @@ import com.poroshin.rut.ar.common.plp.presentation.model.PlpAction
 import com.poroshin.rut.ar.common.plp.presentation.model.PlpEvent
 import com.poroshin.rut.ar.common.plp.presentation.model.PlpState
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
 class PlpViewModel(
     private val getPlpProductsUseCase: GetPlpProductsUseCase,
 ) : SharedViewModel<PlpState, PlpEvent, PlpAction>(initialState = PlpState.Loading) {
+
+    private object Resolver : KoinComponent
+    constructor() : this(Resolver.get())
 
     private val loadedPage: Int? = null
 
