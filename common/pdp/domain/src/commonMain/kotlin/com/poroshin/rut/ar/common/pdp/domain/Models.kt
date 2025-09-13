@@ -10,6 +10,8 @@ data class ArInfo(
 
 enum class ArType { OBJECT, FLOOR, WALL }
 
+enum class OsType { ANDROID, IOS }
+
 /**
  * Расширенная модель продукта для PDP.
  * Содержит больше информации, чем PLP Product.
