@@ -7,6 +7,8 @@ import com.github.terrakok.cicerone.androidx.FragmentScreen
 import com.poroshin.rut.ar.common.plp.presentation.PlpFragment
 import com.poroshin.rut.ar.common.pdp.presentation.PdpFragment
 import com.poroshin.rut.ar.common.ar.presentation.ARFragment
+import com.poroshin.rut.ar.common.core.NavigationTree
+import com.poroshin.rut.ar.common.core.Navigator
 
 /**
  * Реализация [Navigator], которая преобразует [NavigationTree] в конкретные [Screen] (фрагменты).
@@ -68,9 +70,9 @@ class NavigatorImpl : Navigator {
      */
     private fun getFragmentScreen(key: NavigationTree, params: Bundle): Screen {
         return when (key) {
-            NavigationTree.Plp -> FragmentScreen { PlpFragment.newInstance() }
-            NavigationTree.Pdp -> FragmentScreen { PdpFragment.newInstance() } // TODO: добавить PdpScreenParams
-            NavigationTree.Ar -> FragmentScreen { ARFragment.newInstance() } // TODO: добавить ArScreenParams
+            NavigationTree.Plp -> FragmentScreen { PlpFragment.newInstance().apply { arguments = params } }
+            NavigationTree.Pdp -> FragmentScreen { PdpFragment.newInstance().apply { arguments = params } }
+            NavigationTree.Ar -> FragmentScreen { ARFragment.newInstance().apply { arguments = params } }
         }
     }
 }

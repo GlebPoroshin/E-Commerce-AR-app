@@ -4,20 +4,31 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.github.terrakok.cicerone.Router
+import com.poroshin.rut.ar.common.core.Navigator
+import com.poroshin.rut.ar.common.plp.domain.PdpParams
+import com.poroshin.rut.ar.common.plp.domain.bundleAuto
+import com.poroshin.rut.ar.common.plp.presentation.model.PlpAction
+import com.poroshin.rut.ar.common.plp.presentation.model.PlpEvent
+import com.poroshin.rut.ar.common.plp.presentation.ui.PlpScreen
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 class PlpFragment : Fragment() {
+
+    private val viewModel: PlpViewModel by inject<PlpViewModel>()
+    private val router: Router by inject<Router>()
+    private val navigator: Navigator by inject<Navigator>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.onEvent(PlpEvent.OnCreate)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -26,23 +37,27 @@ class PlpFragment : Fragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             Surface(color = MaterialTheme.colorScheme.background) {
-                PlpScreen()
+                PlpScreen(viewModel)
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.viewAction.collect { action ->
+                when (action) {
+                    is PlpAction.OpenPdp -> navigator.navigateTo(
+                        router = router,
+                        key = com.poroshin.rut.ar.common.core.NavigationTree.Pdp,
+                        params = PdpParams(action.sku).bundleAuto(),
+                    )
+                }
             }
         }
     }
 
     companion object {
         fun newInstance(): PlpFragment = PlpFragment()
-    }
-}
-
-@Composable
-private fun PlpScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(text = "PLP Screen")
-        Button(onClick = { /* TODO navigate to PDP */ }) { Text("Open PDP") }
     }
 }
