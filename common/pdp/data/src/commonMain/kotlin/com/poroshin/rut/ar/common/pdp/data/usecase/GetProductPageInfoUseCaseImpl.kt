@@ -1,12 +1,11 @@
-package com.poroshin.rut.ar.common.pdp.data
+package com.poroshin.rut.ar.common.pdp.data.usecase
 
+import com.poroshin.rut.ar.common.pdp.data.currentOs
 import com.poroshin.rut.ar.common.pdp.domain.ArInfo
 import com.poroshin.rut.ar.common.pdp.domain.ArType
 import com.poroshin.rut.ar.common.pdp.domain.GetPdpParams
 import com.poroshin.rut.ar.common.pdp.domain.GetProductPageInfoUseCase
-import com.poroshin.rut.ar.common.pdp.domain.OsType
 import com.poroshin.rut.ar.common.pdp.domain.ProductPageInfo
-import com.poroshin.rut.ar.common.pdp.domain.currentOs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
