@@ -25,16 +25,26 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.common.mvi)
+            implementation(projects.common.pdp.domain)
+
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {
-            implementation(libs.compose.runtime)
+            implementation(libs.androidx.fragment)
             implementation(libs.androidx.compose.material3)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
+
             implementation(libs.compose.ui)
+            implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
-            implementation(libs.androidx.fragment)
+
+            implementation(libs.cicerone)
+            implementation(projects.common.core)
+
+            implementation(libs.koin.android)
+            implementation(libs.koin.androidx.compose)
         }
     }
 }

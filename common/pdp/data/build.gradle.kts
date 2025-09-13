@@ -23,17 +23,24 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.common.pdp.domain)
+
+            implementation(libs.runtime)
+            implementation(libs.koin.core)
+
+            implementation(libs.kotlinx.io.core)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
+
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.runtime)
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.koin.core)
+
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
         }
         androidMain.dependencies {
-            implementation(libs.ktor.client.android)
             implementation(libs.android.driver)
+            implementation(libs.ktor.client.okhttp)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
