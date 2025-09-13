@@ -27,15 +27,27 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+
             implementation(projects.common.mvi)
+            implementation(projects.common.plp.domain)
         }
         androidMain.dependencies {
-            implementation(libs.compose.runtime)
-            implementation(libs.androidx.compose.material3)
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation("io.coil-kt.coil3:coil-compose:3.2.0")
+            implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
+
+            implementation(libs.koin.android)
+            implementation(libs.koin.androidx.compose)
+
+            implementation(projects.common.core)
+            implementation(libs.cicerone)
+
             implementation(libs.compose.ui)
+            implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
+
             implementation(libs.androidx.fragment)
+            implementation(libs.androidx.compose.material3)
+            implementation(libs.androidx.ui.tooling.preview.android)
         }
     }
 }
@@ -51,5 +63,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
-

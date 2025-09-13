@@ -23,13 +23,15 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlinx.coroutines.core)
+            implementation(projects.common.plp.domain)
+
+            implementation(libs.runtime)
+            implementation(libs.koin.core)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.runtime)
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.koin.core)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
