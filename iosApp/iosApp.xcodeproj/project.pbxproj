@@ -28,6 +28,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		084B3BC42E71AB4E00DDFC8E /* MVI */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = MVI; sourceTree = "<group>"; };
+		08B8F0172E759F80009F7A80 /* Plp */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Plp; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +81,7 @@
 		7555FF7D242A565900829871 /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
+				08B8F0172E759F80009F7A80 /* Plp */,
 				084B3BC42E71AB4E00DDFC8E /* MVI */,
 				058557BA273AAA24004C7B11 /* Assets.xcassets */,
 				7555FF82242A565900829871 /* ContentView.swift */,
@@ -116,6 +118,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				084B3BC42E71AB4E00DDFC8E /* MVI */,
+				08B8F0172E759F80009F7A80 /* Plp */,
 			);
 			name = iosApp;
 			productName = iosApp;
