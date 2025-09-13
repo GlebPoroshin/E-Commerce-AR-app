@@ -25,6 +25,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.common.mvi)
+            implementation(projects.common.pdp.domain)
+
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
         }
