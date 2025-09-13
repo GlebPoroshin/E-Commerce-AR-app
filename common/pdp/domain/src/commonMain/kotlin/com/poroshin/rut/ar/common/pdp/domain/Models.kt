@@ -4,6 +4,7 @@ package com.poroshin.rut.ar.common.pdp.domain
  * Доп. инфо для AR. Поле может отсутствовать (null) в продукте.
  */
 data class ArInfo(
+    val version: Int?,
     val arType: ArType,
     val arRecourceUrl: String,
 )
@@ -36,4 +37,4 @@ data class ProductPageInfo(
  */
 data class GetPdpParams(val sku: Long)
 
-
+class ModelLoadException(override val message: String): Exception()
