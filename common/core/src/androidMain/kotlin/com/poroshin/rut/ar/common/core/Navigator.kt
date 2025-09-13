@@ -1,4 +1,4 @@
-package com.poroshin.rut.ar.common.umbrella.navigation
+package com.poroshin.rut.ar.common.core
 
 import android.os.Bundle
 import com.github.terrakok.cicerone.Router

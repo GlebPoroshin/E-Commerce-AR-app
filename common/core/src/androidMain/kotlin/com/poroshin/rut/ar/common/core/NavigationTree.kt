@@ -1,4 +1,4 @@
-package com.poroshin.rut.ar.common.umbrella.navigation
+package com.poroshin.rut.ar.common.core
 
 /**
  * Дерево навигационных ключей — перечисление всех логических маршрутов/флоу приложения.

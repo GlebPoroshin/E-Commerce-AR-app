@@ -34,6 +34,8 @@ kotlin {
 
             api(projects.common.mvi)
 
+            api(projects.common.core)
+
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.koin.core)
@@ -42,6 +44,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.cicerone)
             implementation(libs.koin.android)
+            api(projects.common.core)
         }
 
         iosMain.dependencies {
@@ -55,6 +58,7 @@ kotlin {
             api(projects.common.pdp.domain)
 
             api(projects.common.mvi)
+            api(projects.common.core)
         }
     }
 
