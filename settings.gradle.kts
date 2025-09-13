@@ -19,6 +19,8 @@ include(":androidApp")
 
 include(":common")
 
+include(":common:core")
+
 include(":common:mvi")
 include(":common:umbrella")
 
