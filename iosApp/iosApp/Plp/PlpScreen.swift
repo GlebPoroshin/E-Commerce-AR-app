@@ -9,25 +9,32 @@
 import SwiftUI
 import ARApp
 
+@available(iOS 16.0, *)
 struct PlpScreen: View {
     @StateObject private var holder = SharedVMHolder<PlpState, PlpEvent, PlpAction, PlpViewModel>(
         viewModel: PlpViewModel(),
         initialState: PlpState.Loading()
     )
+    @State private var path = NavigationPath()
 
     var body: some View {
-        content
-            .onAppear {
-                holder.start { action in
-                    switch action {
-                    case let a as PlpAction.OpenPdp:
-                        print("Open PDP sku=\(a.sku)")
-                    default: break
-                    }
+        NavigationStack(path: $path) {
+            content
+                .navigationDestination(for: Int64.self) { sku in
+                    PdpScreen(sku: sku)
                 }
-                holder.sendEvent(PlpEvent.OnCreate())
+        }
+        .onAppear {
+            holder.start { action in
+                switch action {
+                case let a as PlpAction.OpenPdp:
+                    path.append(a.sku)
+                default: break
+                }
             }
-            .onDisappear { holder.stop() }
+            holder.sendEvent(PlpEvent.OnCreate())
+        }
+        .onDisappear { holder.stop() }
     }
 
     @ViewBuilder

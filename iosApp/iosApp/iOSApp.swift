@@ -8,7 +8,11 @@ struct iOSApp: App {
     }
 	var body: some Scene {
 		WindowGroup {
-			PlpScreen()
+			if #available(iOS 16.0, *) {
+				PlpScreen()
+			} else {
+				Text("iOS 16+ required")
+			}
 		}
 	}
 }
