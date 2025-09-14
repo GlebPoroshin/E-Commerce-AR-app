@@ -117,11 +117,8 @@ struct ARViewContainer: UIViewRepresentable {
 
             arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
 
-            // RealityKit scene understanding (occlusion, lighting reception, physics)
-            arView.environment.sceneUnderstanding.options.insert([.occlusion, .receivesLighting, .physics])
-
-            // Lighting
-            addSunLight(to: arView)
+            // RealityKit scene understanding (occlusion, physics). Avoid receivesLighting for more natural look.
+            arView.environment.sceneUnderstanding.options.insert([.occlusion, .physics])
 
             // UI
             setupGuidanceLabel(in: arView)
@@ -199,24 +196,22 @@ struct ARViewContainer: UIViewRepresentable {
             // Prefer existing plane geometry → then estimated
             if let query = arView.makeRaycastQuery(from: pt, allowing: .existingPlaneGeometry, alignment: .horizontal),
                let result = arView.session.raycast(query).first {
-                placeModel(at: result.worldTransform)
+                placeModel(using: result)
                 return
             }
             if let query = arView.makeRaycastQuery(from: pt, allowing: .estimatedPlane, alignment: .horizontal),
                let result = arView.session.raycast(query).first {
-                placeModel(at: result.worldTransform)
+                placeModel(using: result)
             }
         }
 
-        private func placeModel(at worldTransform: simd_float4x4) {
+        private func placeModel(using result: ARRaycastResult) {
             guard let arView = arView else { return }
 
-            // Create/replace a dedicated anchor for the model
-            let anchor = AnchorEntity(world: worldTransform)
+            let anchor = AnchorEntity(raycastResult: result)
             self.modelAnchor = anchor
             arView.scene.addAnchor(anchor)
 
-            // Load & configure model (async if needed)
             loadAndConfigureModel(into: anchor, in: arView)
         }
 
@@ -301,6 +296,18 @@ struct ARViewContainer: UIViewRepresentable {
 
             // Collision (for gestures / physics)
             entity.generateCollisionShapes(recursive: true)
+
+            // Ensure collisions resolve with scene-understanding meshes and other entities
+            if var collision = entity.components[CollisionComponent.self] {
+                collision.filter = CollisionFilter(group: .default, mask: [.default, .sceneUnderstanding])
+                entity.components[CollisionComponent.self] = collision
+            } else {
+                entity.components[CollisionComponent.self] = CollisionComponent(
+                    shapes: [],
+                    mode: .default,
+                    filter: CollisionFilter(group: .default, mask: [.default, .sceneUnderstanding])
+                )
+            }
 
             // Physics: dynamic only when real-world mesh is available; otherwise kinematic
             if reconstructionEnabled {

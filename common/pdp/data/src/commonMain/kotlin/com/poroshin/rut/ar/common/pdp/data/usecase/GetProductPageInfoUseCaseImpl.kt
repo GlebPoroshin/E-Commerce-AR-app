@@ -14,8 +14,6 @@ import kotlinx.coroutines.withContext
 
 class GetProductPageInfoUseCaseImpl : GetProductPageInfoUseCase {
     override suspend fun invoke(params: GetPdpParams): ProductPageInfo = withContext(Dispatchers.IO) {
-        delay(800L)
-
         val imageUrl = "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0…582/lmcode/kGthtXjO_EiIT47Y7XJboQ/92389573_01.jpg"
 
         val arUrl = when (currentOs()) {
