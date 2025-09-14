@@ -79,12 +79,23 @@ struct ARViewContainer: UIViewRepresentable {
             arView.session.delegate = self
 
             let config = ARWorldTrackingConfiguration()
-            config.planeDetection = [.horizontal]
+            config.planeDetection = [.horizontal, .vertical]
             config.environmentTexturing = .automatic
+            if ARWorldTrackingConfiguration.supportsSceneReconstruction(.meshWithClassification) {
+                config.sceneReconstruction = .meshWithClassification
+            }
+            if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+                config.frameSemantics.insert(.sceneDepth)
+            }
+            if ARWorldTrackingConfiguration.supportsFrameSemantics(.smoothedSceneDepth) {
+                config.frameSemantics.insert(.smoothedSceneDepth)
+            }
             arView.session.run(
                 config,
                 options: [.resetTracking, .removeExistingAnchors]
             )
+
+            arView.environment.sceneUnderstanding.options = [.occlusion, .physics]
 
             setupGuidanceLabel(in: arView)
 
@@ -95,16 +106,14 @@ struct ARViewContainer: UIViewRepresentable {
             )
             arView.addGestureRecognizer(tapGR)
 
-            // Long press to select
-            let longGR = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-            arView.addGestureRecognizer(longGR)
+            // Long press to select (temporarily disabled)
+            // let longGR = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            // arView.addGestureRecognizer(longGR)
 
             // Pan to drag selected
             let panGR = UIPanGestureRecognizer(target: self, action: #selector(handleDrag(_:)))
             
-            panGR.require(toFail: longGR)
-            arView.addGestureRecognizer(panGR)
-            
+            // panGR.require(toFail: longGR)
             panGR.minimumNumberOfTouches = 1
             panGR.maximumNumberOfTouches = 1
             arView.addGestureRecognizer(panGR)
@@ -139,7 +148,7 @@ struct ARViewContainer: UIViewRepresentable {
                ),
                let result = arView.session.raycast(query).first
             {
-                let anchor = AnchorEntity(world: result.worldTransform)
+                let anchor = AnchorEntity(raycastResult: result)
                 placeModel(on: anchor)
                 return
             }
@@ -151,12 +160,14 @@ struct ARViewContainer: UIViewRepresentable {
                ),
                let result = arView.session.raycast(query).first
             {
-                let anchor = AnchorEntity(world: result.worldTransform)
+                let anchor = AnchorEntity(raycastResult: result)
                 placeModel(on: anchor)
             }
         }
 
         // MARK: Selection & Drag
+        /*
+        // Long press selection temporarily disabled
         @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
             guard let arView = arView else { return }
             let loc = gesture.location(in: arView)
@@ -167,6 +178,7 @@ struct ARViewContainer: UIViewRepresentable {
                 modelEntity = nil
             }
         }
+        */
 
         @objc private func handleDrag(_ gesture: UIPanGestureRecognizer) {
             guard let arView = arView,
@@ -207,6 +219,7 @@ struct ARViewContainer: UIViewRepresentable {
                 entity.generateCollisionShapes(recursive: true)
                 scaleModel(entity)
                 anchor.addChild(entity)
+                alignBottom(entity, relativeTo: anchor)
                 arView.scene.addAnchor(anchor)
                 arView.installGestures([.rotation], for: entity)
                 modelEntity = entity
@@ -229,7 +242,14 @@ struct ARViewContainer: UIViewRepresentable {
             let sx = modelSize.x / max(size.x, 0.001)
             let sy = modelSize.y / max(size.y, 0.001)
             let sz = modelSize.z / max(size.z, 0.001)
-            entity.scale = M3(sx, sy, sz)
+            let s  = min(sx, sy, sz)
+            entity.scale = M3(repeating: s)
+        }
+
+        private func alignBottom(_ entity: ModelEntity, relativeTo reference: Entity) {
+            let bounds = entity.visualBounds(relativeTo: reference)
+            let bottomY = bounds.min.y
+            entity.position.y -= bottomY
         }
 
         // MARK: Guidance UI

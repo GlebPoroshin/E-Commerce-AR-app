@@ -43,9 +43,9 @@ class GetProductPageInfoUseCaseImpl : GetProductPageInfoUseCase {
                 arType = ArType.OBJECT,
                 arRecourceUrl = arUrl,
                 version = 10,
-                width = 17.6f,
-                height = 7f,
-                depth = 8.3f,
+                width = 18f,
+                height = 13f,
+                depth = 10f,
             )
         )
     }
