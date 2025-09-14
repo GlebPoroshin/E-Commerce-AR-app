@@ -29,6 +29,7 @@ kotlin {
             implementation(projects.common.pdp.domain)
 
             implementation(libs.koin.core)
+            implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {

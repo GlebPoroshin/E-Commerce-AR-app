@@ -9,8 +9,6 @@ import com.poroshin.rut.ar.common.pdp.domain.repository.ModelRepository
 import com.poroshin.rut.ar.common.pdp.domain.usecase.DownloadProductModelUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
 import com.russhwolf.settings.Settings
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
