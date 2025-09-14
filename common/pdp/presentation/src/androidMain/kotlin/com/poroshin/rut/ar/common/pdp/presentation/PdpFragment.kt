@@ -64,7 +64,8 @@ private fun PdpScreen(viewModel: PdpViewModel) {
     LaunchedEffect(Unit) {
         viewModel.viewAction.collect { action ->
             when (action) {
-                is PdpAction.OpenArViewer -> isDownloadedState.value = true
+                is PdpAction.OpenArObject -> isDownloadedState.value = true
+                else -> { /* no-op */ }
             }
         }
     }
@@ -93,11 +94,7 @@ private fun PdpScreen(viewModel: PdpViewModel) {
                     Button(
                         onClick = {
                             viewModel.onEvent(
-                                PdpEvent.OnModelLoad(
-                                    sku = viewState.product.sku,
-                                    url = viewState.product.ar?.arRecourceUrl ?: "",
-                                    version = viewState.product.ar?.version ?: 0
-                                )
+                                PdpEvent.OnModelLoad(state = viewState)
                             )
                         }
                     ) {

@@ -18,13 +18,24 @@ struct PdpScreen: View {
     )
     @State private var isDownloaded: Bool = false
 
+    @EnvironmentObject private var router: AppRouter
+
     var body: some View {
         content
             .onAppear {
                 holder.start { action in
                     switch action {
-                    case _ as PdpAction.OpenArViewer:
+                    case let a as PdpAction.OpenArObject:
                         isDownloaded = true
+                        let pathString = a.filePath.description
+                        router.push(
+                            .arObject(
+                                filePath: pathString,
+                                widthMm: Int(a.width),
+                                heightMm: Int(a.height),
+                                depthMm: Int(a.depth)
+                            )
+                        )
                     default: break
                     }
                 }
@@ -64,11 +75,7 @@ struct PdpScreen: View {
                         let url = content.product.ar?.arRecourceUrl ?? ""
                         let version = content.product.ar?.version?.intValue ?? 0
                         holder.sendEvent(
-                            PdpEvent.OnModelLoad(
-                                sku: content.product.sku,
-                                url: url,
-                                version: Int32(version)
-                            )
+                            PdpEvent.OnModelLoad(state: content)
                         )
                     }
                     .buttonStyle(.borderedProminent)
