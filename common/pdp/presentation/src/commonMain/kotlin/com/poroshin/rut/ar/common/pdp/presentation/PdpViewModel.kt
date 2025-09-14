@@ -32,11 +32,7 @@ class PdpViewModel(
 
             is PdpEvent.OnRetry -> sku?.let { load(it) }
 
-            is PdpEvent.OnModelLoad -> loadModel(
-                sku = event.sku,
-                url = event.url,
-                version = event.version,
-            )
+            is PdpEvent.OnModelLoad -> loadModel(event.state)
         }
     }
 
@@ -48,15 +44,16 @@ class PdpViewModel(
     }
 
     private fun loadModel(
-        sku: Long,
-        url: String,
-        version: Int,
+        state: PdpState.Content,
     ) {
+        val product = state.product
+        val arInfo = state.product.ar ?: return
+
         viewModelScope.launch {
-            downloadProductModelUseCase(
-                sku = sku,
-                url = url,
-                version = version,
+            val path = downloadProductModelUseCase(
+                sku = product.sku,
+                url = arInfo.arRecourceUrl,
+                version = arInfo.version ?: 1,
                 onProgress = { received, total ->
                     if (total != null && total > 0L) {
                         val percent = ((received.toDouble() / total.toDouble()) * 100.0)
@@ -69,7 +66,14 @@ class PdpViewModel(
                     }
                 }
             )
-            sendAction(PdpAction.OpenArViewer(sku))
+            sendAction(
+                PdpAction.OpenArObject(
+                    filePath =  path,
+                    width = arInfo.width,
+                    height = arInfo.height,
+                    depth = arInfo.depth ?: 0
+                )
+            )
         }
     }
 }
