@@ -6,9 +6,9 @@ import kotlinx.io.files.Path
 sealed class PdpAction : UiAction {
     data class OpenArObject(
         val filePath: Path,
-        val width: Int,
-        val height: Int,
-        val depth: Int,
+        val width: Float,
+        val height: Float,
+        val depth: Float,
     ) : PdpAction()
 
     data class OpenArCovering(

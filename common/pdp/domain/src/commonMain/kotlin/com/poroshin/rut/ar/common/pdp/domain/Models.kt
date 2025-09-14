@@ -7,9 +7,9 @@ data class ArInfo(
     val version: Int?,
     val arType: ArType,
     val arRecourceUrl: String,
-    val width: Int, // В миллиметрах
-    val height: Int,
-    val depth: Int? = null
+    val width: Float, // В миллиметрах
+    val height: Float,
+    val depth: Float? = null
 )
 
 enum class ArType { OBJECT, FLOOR, WALL }

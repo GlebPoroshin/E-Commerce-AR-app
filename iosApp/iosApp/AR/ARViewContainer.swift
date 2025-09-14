@@ -1,64 +1,271 @@
 //
 //  ARViewContainer.swift
-//  iosApp
+//  ArProductFeatureApp
 //
-//  Created by Глеб Порошин on 14.09.2025.
-//  Copyright © 2025 orgName. All rights reserved.
-//
-
-//
-//  ARViewContainer.swift
-//  iosApp
+//  Created by Глеб Порошин on 23.04.2025.
 //
 
 import SwiftUI
 import RealityKit
 import ARKit
 
-@available(iOS 16.0, *)
+typealias M3 = SIMD3<Float>
+
 struct ARViewContainer: UIViewRepresentable {
-    typealias Coordinator = ARCoordinator
-
     let filePath: String
-    let widthMm: Int
-    let heightMm: Int
-    let depthMm: Int
+    let preloadedModel: ModelEntity?
 
-    func makeCoordinator() -> Coordinator {
-        ARCoordinator(
-            targetSizeMeters: CGSize(
-                width: max(0.001, Double(widthMm)) / 1000.0,
-                height: max(0.001, Double(heightMm)) / 1000.0
-            ),
-            targetDepthMeters: max(0.001, Double(depthMm)) / 1000.0
-        )
-    }
+    let modelWidthMm:  Float
+    let modelHeightMm: Float
+    let modelDepthMm:  Float
+
+    var onResetRequest: () -> Void
+    var resetRequested: Bool
+    var showGuidance: Bool = true
 
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero)
-        arView.automaticallyConfigureSession = false
-        configureARSession(for: arView)
-
-        // HUD
-        let hud = StatusHUD()
-        arView.addSubview(hud)
-        NSLayoutConstraint.activate([
-            hud.centerXAnchor.constraint(equalTo: arView.centerXAnchor),
-            hud.bottomAnchor.constraint(equalTo: arView.bottomAnchor, constant: -40)
-        ])
-
-        context.coordinator.hud = hud
-        context.coordinator.arView = arView
-        context.coordinator.setupTapGesture(on: arView)
-        context.coordinator.start(filePath: filePath)
-
+        context.coordinator.setup(on: arView)
         return arView
     }
 
-    func updateUIView(_ uiView: ARView, context: Context) {}
+    func updateUIView(_ uiView: ARView, context: Context) {
+        if resetRequested && !context.coordinator.shouldReset {
+            context.coordinator.requestReset()
+        }
+        context.coordinator.updateGuidance(showGuidance)
+    }
 
-    static func dismantleUIView(_ uiView: ARView, coordinator: Coordinator) {
-        uiView.session.pause()
-        coordinator.teardown()
+    func makeCoordinator() -> Coordinator {
+        let sizeMeters = M3(modelWidthMm, modelHeightMm, modelDepthMm) / 1000
+        return Coordinator(
+            modelSize:    sizeMeters,
+            resetHandler: onResetRequest,
+            showGuidance: showGuidance,
+            filePath: filePath,
+            preloadedModel: preloadedModel
+        )
+    }
+
+    class Coordinator: NSObject, ARSessionDelegate {
+        private weak var arView: ARView?
+        private var guidanceLabel: UILabel?
+        private var modelEntity: ModelEntity?
+        private var modelSize: M3
+        private var showGuidance: Bool
+        private var planeDetectionTimer: Timer?
+        var shouldReset = false
+        private let resetHandler: () -> Void
+        
+        let filePath: String
+        private var preloadedModel: ModelEntity?
+
+        init(modelSize: M3,
+             resetHandler: @escaping () -> Void,
+             showGuidance: Bool,
+             filePath: String,
+             preloadedModel: ModelEntity?)
+        {
+            self.modelSize    = modelSize
+            self.resetHandler = resetHandler
+            self.showGuidance = showGuidance
+            self.filePath     = filePath
+            self.preloadedModel = preloadedModel
+            super.init()
+        }
+
+        func setup(on arView: ARView) {
+            self.arView = arView
+            arView.session.delegate = self
+
+            let config = ARWorldTrackingConfiguration()
+            config.planeDetection = [.horizontal]
+            config.environmentTexturing = .automatic
+            arView.session.run(
+                config,
+                options: [.resetTracking, .removeExistingAnchors]
+            )
+
+            setupGuidanceLabel(in: arView)
+
+            // Tap to place
+            let tapGR = UITapGestureRecognizer(
+                target: self,
+                action: #selector(handleTap(_:))
+            )
+            arView.addGestureRecognizer(tapGR)
+
+            // Long press to select
+            let longGR = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            arView.addGestureRecognizer(longGR)
+
+            // Pan to drag selected
+            let panGR = UIPanGestureRecognizer(target: self, action: #selector(handleDrag(_:)))
+            
+            panGR.require(toFail: longGR)
+            arView.addGestureRecognizer(panGR)
+            
+            panGR.minimumNumberOfTouches = 1
+            panGR.maximumNumberOfTouches = 1
+            arView.addGestureRecognizer(panGR)
+        }
+
+        func updateGuidance(_ show: Bool) {
+            showGuidance = show
+            guidanceLabel?.isHidden = !show
+        }
+
+        func requestReset() {
+            shouldReset = true
+            if let view = arView {
+                view.scene.anchors.removeAll()
+                modelEntity = nil
+                shouldReset = false
+                setup(on: view)
+            }
+            resetHandler()
+        }
+
+        // MARK: Tap / Placement
+
+        @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
+            guard let arView = arView else { return }
+            let pt = gesture.location(in: arView)
+
+            if let query = arView.makeRaycastQuery(
+                 from: pt,
+                 allowing: .existingPlaneGeometry,
+                 alignment: .horizontal
+               ),
+               let result = arView.session.raycast(query).first
+            {
+                let anchor = AnchorEntity(world: result.worldTransform)
+                placeModel(on: anchor)
+                return
+            }
+
+            if let query = arView.makeRaycastQuery(
+                 from: pt,
+                 allowing: .estimatedPlane,
+                 alignment: .horizontal
+               ),
+               let result = arView.session.raycast(query).first
+            {
+                let anchor = AnchorEntity(world: result.worldTransform)
+                placeModel(on: anchor)
+            }
+        }
+
+        // MARK: Selection & Drag
+        @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+            guard let arView = arView else { return }
+            let loc = gesture.location(in: arView)
+            if gesture.state == .began,
+               let entity = arView.entity(at: loc) as? ModelEntity {
+                modelEntity = entity
+            } else if gesture.state == .ended || gesture.state == .cancelled {
+                modelEntity = nil
+            }
+        }
+
+        @objc private func handleDrag(_ gesture: UIPanGestureRecognizer) {
+            guard let arView = arView,
+                  let entity = modelEntity else { return }
+            let loc = gesture.location(in: arView)
+            if gesture.state == .changed {
+                if let hit = arView.raycast(
+                    from: loc,
+                    allowing: .estimatedPlane,
+                    alignment: .horizontal
+                ).first {
+                    var t = hit.worldTransform
+                    t.columns.3.y = entity.position.y
+                    entity.move(to: Transform(matrix: t), relativeTo: nil)
+                }
+            }
+        }
+
+        // MARK: Model placement
+
+        private func placeModel(on anchor: AnchorEntity) {
+            guard let arView = arView else { return }
+            loadAndConfigureModel(into: anchor, in: arView)
+        }
+
+        private func loadAndConfigureModel(
+            into anchor: AnchorEntity,
+            in arView: ARView
+        ) {
+            do {
+                let entity: ModelEntity
+                if let preloaded = preloadedModel {
+                    entity = preloaded
+                } else {
+                    let url = resolveURL(from: filePath)
+                    entity = try Entity.loadModel(contentsOf: url)
+                }
+                entity.generateCollisionShapes(recursive: true)
+                scaleModel(entity)
+                anchor.addChild(entity)
+                arView.scene.addAnchor(anchor)
+                arView.installGestures([.rotation], for: entity)
+                modelEntity = entity
+            } catch {
+                updateGuidanceLabel(text: "Ошибка загрузки: \(error.localizedDescription)")
+            }
+        }
+
+        private func resolveURL(from path: String) -> URL {
+            if path.hasPrefix("/") {
+                return URL(fileURLWithPath: path)
+            }
+            let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+            return cachesURL.appendingPathComponent(path)
+        }
+
+        private func scaleModel(_ entity: ModelEntity) {
+            let bounds = entity.visualBounds(relativeTo: nil)
+            let size   = bounds.max - bounds.min
+            let sx = modelSize.x / max(size.x, 0.001)
+            let sy = modelSize.y / max(size.y, 0.001)
+            let sz = modelSize.z / max(size.z, 0.001)
+            entity.scale = M3(sx, sy, sz)
+        }
+
+        // MARK: Guidance UI
+
+        private func setupGuidanceLabel(in arView: ARView) {
+            let label = UILabel()
+            label.text = "Тапните для размещения, долгое нажатие + перетаскивание"
+            label.textAlignment = .center
+            label.textColor = .white
+            label.font = .systemFont(ofSize: 16, weight: .medium)
+            label.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+            label.layer.cornerRadius = 8
+            label.clipsToBounds = true
+            label.numberOfLines = 0
+            label.isHidden = !showGuidance
+            label.translatesAutoresizingMaskIntoConstraints = false
+
+            arView.addSubview(label)
+            NSLayoutConstraint.activate([
+                label.bottomAnchor
+                    .constraint(equalTo: arView.bottomAnchor, constant: -50),
+                label.centerXAnchor
+                    .constraint(equalTo: arView.centerXAnchor),
+                label.widthAnchor
+                    .constraint(lessThanOrEqualTo: arView.widthAnchor, constant: -40)
+            ])
+            let p = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+            label.directionalLayoutMargins = NSDirectionalEdgeInsets(
+                top: p.top, leading: p.left,
+                bottom: p.bottom, trailing: p.right
+            )
+            guidanceLabel = label
+        }
+
+        private func updateGuidanceLabel(text: String) {
+            guidanceLabel?.text = text
+        }
     }
 }

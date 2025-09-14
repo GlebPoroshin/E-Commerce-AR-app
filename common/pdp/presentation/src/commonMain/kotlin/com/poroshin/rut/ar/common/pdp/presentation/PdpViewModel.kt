@@ -71,7 +71,7 @@ class PdpViewModel(
                     filePath =  path,
                     width = arInfo.width,
                     height = arInfo.height,
-                    depth = arInfo.depth ?: 0
+                    depth = arInfo.depth ?: 0f
                 )
             )
         }

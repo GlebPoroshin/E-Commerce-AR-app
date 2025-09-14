@@ -31,9 +31,9 @@ struct PdpScreen: View {
                         router.push(
                             .arObject(
                                 filePath: pathString,
-                                widthMm: Int(a.width),
-                                heightMm: Int(a.height),
-                                depthMm: Int(a.depth)
+                                widthMm: a.width,
+                                heightMm: a.height,
+                                depthMm: a.depth
                             )
                         )
                     default: break

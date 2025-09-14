@@ -20,9 +20,9 @@ struct iOSApp: App {
 							case .arObject(let filePath, let widthMm, let heightMm, let depthMm):
 								ArScreen(
 									filePath: filePath,
-									widthMm: widthMm,
-									heightMm: heightMm,
-									depthMm: depthMm
+									modelWidthMm: widthMm,
+                                    modelHeightMm: heightMm,
+                                    modelDepthMm: depthMm
 								)
 							}
 						}
