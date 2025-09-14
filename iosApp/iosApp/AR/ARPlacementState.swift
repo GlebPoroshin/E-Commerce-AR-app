@@ -8,8 +8,7 @@
 
 enum ARPlacementState: Equatable {
     case modelLoading
-    case scanning            // нет валидного хита
-    case aiming              // есть валидный хит — ретикл
-    case placed              // модель заякорена
+    case readyToPlace        // модель загружена, ждем тапа
+    case placed              // модель размещена и заякорена
     case modelFailed(String) // ошибка загрузки
 }

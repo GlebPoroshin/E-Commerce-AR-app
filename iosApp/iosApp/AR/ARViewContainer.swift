@@ -6,6 +6,11 @@
 //  Copyright © 2025 orgName. All rights reserved.
 //
 
+//
+//  ARViewContainer.swift
+//  iosApp
+//
+
 import SwiftUI
 import RealityKit
 import ARKit
@@ -57,4 +62,3 @@ struct ARViewContainer: UIViewRepresentable {
         coordinator.teardown()
     }
 }
-

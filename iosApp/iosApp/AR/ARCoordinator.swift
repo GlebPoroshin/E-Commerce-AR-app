@@ -29,7 +29,6 @@ final class ARCoordinator: NSObject {
     // Content
     private var model: ModelEntity?
     private var anchor: AnchorEntity?
-    private var reticle = PlacementReticle()
 
     // State
     private(set) var state: ARPlacementState = .modelLoading { didSet { updateHUD() } }
@@ -64,17 +63,16 @@ final class ARCoordinator: NSObject {
         guard let arView else { return }
         state = .modelLoading
 
-        // Ретикл-якорь (identity)
-        let reticleAnchor = AnchorEntity(world: matrix_identity_float4x4)
-        reticle.show(false)
-        reticleAnchor.addChild(reticle.entity)
-        arView.scene.addAnchor(reticleAnchor)
-
         loadModel(fromPath: filePath)
 
-        // Обновления сцены (raycast + ретикл)
+        // Только лёгкий апдейт — кламп масштаба после жестов
         sceneUpdate = arView.scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
-            self?.tick()
+            guard let self, case .placed = self.state, let m = self.model else { return }
+            var s = m.scale
+            s.x = max(self.minScale, min(s.x, self.maxScale))
+            s.y = max(self.minScale, min(s.y, self.maxScale))
+            s.z = max(self.minScale, min(s.z, self.maxScale))
+            if s != m.scale { m.scale = s }
         }
 
         updateHUD()
@@ -88,64 +86,52 @@ final class ARCoordinator: NSObject {
     }
 
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
-        guard state == .aiming, let arView else { return }
+        guard case .readyToPlace = state, let arView else { return }
         let point = gesture.location(in: arView)
-        if let hit = raycast(at: point) {
-            placeModel(at: hit.worldTransform, anchorFrom: hit)
-        }
-    }
 
-    // MARK: - Per-frame
-
-    private func tick() {
-        guard let arView else { return }
-
-        switch state {
-        case .modelLoading, .modelFailed:
+        guard let hit = raycastOnFloorPreferred(at: point) else {
+            // Нет ещё найденной плоскости в точке — просим поводить камерой
+            UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+            hud?.setMessage("Не вижу пола в этой точке.\nПроведите камерой, чтобы распознать плоскость.", visible: true)
             return
-        case .placed:
-            if let m = model {
-                var s = m.scale
-                s.x = max(minScale, min(s.x, maxScale))
-                s.y = max(minScale, min(s.y, maxScale))
-                s.z = max(minScale, min(s.z, maxScale))
-                if s != m.scale { m.scale = s }
-            }
-        case .scanning, .aiming:
-            let center = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
-            if let hit = raycast(at: center) {
-                reticle.move(to: hit.worldTransform)
-                reticle.set(valid: true)
-                reticle.show(true)
-                if state != .aiming { state = .aiming }
-            } else {
-                reticle.set(valid: false, animated: state == .aiming)
-                reticle.show(false)
-                if state != .scanning { state = .scanning }
-            }
         }
+        placeModel(using: hit)
     }
 
-    // MARK: - Raycast
+    // MARK: - Raycast (тап в любую точку)
 
-    private func raycast(at screenPoint: CGPoint) -> ARRaycastResult? {
+    /// Предпочитаем пол; если нет классификации – берём любой горизонтальный хит по существующей геометрии.
+    private func raycastOnFloorPreferred(at screenPoint: CGPoint) -> ARRaycastResult? {
         guard let arView else { return nil }
-        let primary = arView.raycast(from: screenPoint, allowing: .existingPlaneGeometry, alignment: .horizontal)
-        let hit = primary.first ?? arView.raycast(from: screenPoint, allowing: .estimatedPlane, alignment: .horizontal).first
 
-        if let h = hit, let plane = h.anchor as? ARPlaneAnchor, plane.classification == .floor {
-            return h
+        // 1) Стреляем только по существующей геометрии (самое стабильное)
+        let results = arView.raycast(from: screenPoint, allowing: .existingPlaneGeometry, alignment: .horizontal)
+
+        // 1.1) Если среди результатов есть плоскость, классифицированная как пол — берём её
+        if let floorHit = results.first(where: { ($0.anchor as? ARPlaneAnchor)?.classification == .floor }) {
+            return floorHit
         }
-        return hit
+
+        // 1.2) Иначе берём первый результат по горизонтальной плоскости
+        if let anyPlaneHit = results.first {
+            return anyPlaneHit
+        }
+
+        // 2) Фоллбек: можно разрешить оценочную плоскость (будет менее стабильно)
+        // Закомментируй эту часть, если хочешь размещать ТОЛЬКО по найденным плоскостям
+        let fallback = arView.raycast(from: screenPoint, allowing: .estimatedPlane, alignment: .horizontal)
+        return fallback.first
     }
 
     // MARK: - Placement
 
-    private func placeModel(at worldTransform: float4x4, anchorFrom hit: ARRaycastResult) {
+    private func placeModel(using hit: ARRaycastResult) {
         guard let arView, var model else { return }
 
+        // Якорь из результата рейкаста — модель будет «прибита» к плоскости мира
         let a = AnchorEntity(raycastResult: hit)
 
+        // Посадка «на пол»: ставим нижней гранью на плоскость + ε, чтобы не мерцала
         let b = model.visualBounds(relativeTo: nil)
         let bottom = b.center.y - b.extents.y / 2
         model.position.y -= bottom
@@ -154,19 +140,18 @@ final class ARCoordinator: NSObject {
         a.addChild(model)
         arView.scene.addAnchor(a)
 
-        arView.installGestures([.translation, .rotation], for: model)
+        // Жесты после постановки (без масштаб-хаоса до этого)
+        arView.installGestures([.translation, .rotation, .scale], for: model)
 
-        // Анимация "появления" масштабом через move(to:)
+        // Короткая анимация появления
         let original = model.scale
         model.scale = original * 0.9
-        var t = model.transform
-        t.scale = original
+        var t = model.transform; t.scale = original
         model.move(to: t, relativeTo: nil, duration: 0.12, timingFunction: .easeInOut)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
         anchor = a
         state = .placed
-        reticle.show(false)
     }
 
     // MARK: - Loading
@@ -187,7 +172,7 @@ final class ARCoordinator: NSObject {
                 m.generateCollisionShapes(recursive: true)
                 self.applyRealWorldScale(for: &m)
                 self.model = m
-                self.state = .scanning
+                self.state = .readyToPlace
             })
             .store(in: &cancellables)
     }
@@ -236,32 +221,16 @@ final class ARCoordinator: NSObject {
         switch state {
         case .modelLoading:
             hud?.setMessage("Загрузка модели…", visible: true)
-        case .scanning:
-            hud?.setMessage("Наведите камеру на пол\nДвигайте устройство для сканирования", visible: true)
-        case .aiming:
-            hud?.setMessage("Коснитесь экрана, чтобы поставить", visible: true)
+        case .readyToPlace:
+            hud?.setMessage("Ткни на пол — туда поставим модель", visible: true)
         case .placed:
-            hud?.setMessage("Объект размещён. Можно ходить вокруг.\nЖесты: перемещение/поворот", visible: true)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            hud?.setMessage("Размещено. Жесты: перемещение/поворот/масштаб", visible: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 if case .placed = self?.state { self?.hud?.setMessage("", visible: false) }
             }
         case .modelFailed(let msg):
-            hud?.setMessage("Не удалось загрузить модель:\n\(msg)", visible: true)
+            hud?.setMessage("Ошибка загрузки модели:\n\(msg)", visible: true)
         }
     }
-
-//
-//    // MARK: - Lighting
-//
-//    func addKeyLight() {
-//        guard let view = arView else { return }
-//        let light = DirectionalLight()
-//        light.light.intensity = 15000
-//        light.light.temperature = 6500
-//        light.shadow = DirectionalLightComponent.Shadow(maximumDistance: 10)
-//
-//        let lightAnchor = AnchorEntity(world: .init(translation: [0, 2, 0]))
-//        lightAnchor.addChild(light)
-//        view.scene.addAnchor(lightAnchor)
-//    }
 }
+
