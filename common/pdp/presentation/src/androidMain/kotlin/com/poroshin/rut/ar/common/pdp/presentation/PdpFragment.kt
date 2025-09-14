@@ -83,7 +83,9 @@ private fun PdpScreen(viewModel: PdpViewModel) {
                 Text(text = "Price: ${viewState.product.price}", style = MaterialTheme.typography.bodyMedium)
 
                 viewState.loadingState?.let { percent ->
-                    LinearProgressIndicator(progress = percent / 100f)
+                    LinearProgressIndicator(
+                        progress = { percent / 100f },
+                    )
                     Text(text = "Loading: $percent%", style = MaterialTheme.typography.bodySmall)
                 }
 
