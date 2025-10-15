@@ -309,15 +309,12 @@ struct ARViewContainer: UIViewRepresentable {
                 )
             }
 
-            // Physics: dynamic only when real-world mesh is available; otherwise kinematic
-            if reconstructionEnabled {
-                entity.physicsBody = .init(mode: .dynamic)
-            } else {
-                entity.physicsBody = .init(mode: .kinematic)
-            }
+            // Physics: keep kinematic to avoid floating/tilting from uneven scene-understanding meshes
+            entity.physicsBody = .init(mode: .kinematic)
 
-            // Scale uniformly to target size and snap to floor (anchor’s Y=0)
+            // Scale uniformly to target size and snap visually to plane; prevent tilt by aligning to anchor's up
             fitModel(entity, to: modelSize, relativeTo: anchor, uniform: true, snapToFloor: true)
+            alignToAnchorUp(entity, relativeTo: anchor)
 
             // User rotation gesture from RealityKit
             arView.installGestures([.rotation], for: entity)
@@ -358,8 +355,29 @@ struct ARViewContainer: UIViewRepresentable {
 
             if snapToFloor {
                 let b1 = entity.visualBounds(recursive: true, relativeTo: ref)
-                let lift = -b1.min.y
+                // Snap bottom to plane with a tiny epsilon to avoid z-fighting
+                let epsilon: Float = 0.002
+                let lift = -(b1.min.y - epsilon)
                 entity.position.y += lift
+            }
+        }
+
+        /// Align entity's orientation so its local up matches anchor's up (prevents rear edge from "floating").
+        private func alignToAnchorUp(_ entity: ModelEntity, relativeTo ref: Entity) {
+            // Extract anchor's up vector from its transform
+            let refTransform = ref.transformMatrix(relativeTo: nil)
+            let upWorld = normalize(SIMD3<Float>(refTransform.columns.1.x,
+                                                 refTransform.columns.1.y,
+                                                 refTransform.columns.1.z))
+            // Compute rotation from entity's current up to anchor's up
+            let c1 = entity.transform.matrix.columns.1
+            let currentUp = normalize(SIMD3<Float>(c1.x, c1.y, c1.z))
+            let axis = simd_normalize(simd_cross(currentUp, upWorld))
+            let dot = max(-1.0, min(1.0, simd_dot(currentUp, upWorld)))
+            let angle = acos(dot)
+            if angle.isFinite && angle > 1e-3 {
+                let q = simd_quatf(angle: angle, axis: axis)
+                entity.orientation = q * entity.orientation
             }
         }
 
