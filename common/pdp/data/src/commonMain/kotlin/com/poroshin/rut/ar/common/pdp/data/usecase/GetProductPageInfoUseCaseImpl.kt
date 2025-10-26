@@ -17,8 +17,8 @@ class GetProductPageInfoUseCaseImpl : GetProductPageInfoUseCase {
         val imageUrl = "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0…582/lmcode/kGthtXjO_EiIT47Y7XJboQ/92389573_01.jpg"
 
         val arUrl = when (currentOs()) {
-            OsType.ANDROID -> "https://storage.yandexcloud.net/ar-app/models/609123.glb"
-            OsType.IOS -> "https://storage.yandexcloud.net/ar-app/models/609123.usdz"
+            OsType.ANDROID -> "https://storage.yandexcloud.net/ar-app/models/AR-Code-1683007596576.glb"
+            OsType.IOS -> "https://storage.yandexcloud.net/ar-app/models/AR-Code-1683007596576.usdz"
         }
 
         ProductPageInfo(

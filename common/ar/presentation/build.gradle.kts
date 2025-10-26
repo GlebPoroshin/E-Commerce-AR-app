@@ -27,6 +27,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(projects.common.ar.domain)
         }
         androidMain.dependencies {
             implementation(libs.compose.runtime)
@@ -60,5 +61,4 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
 

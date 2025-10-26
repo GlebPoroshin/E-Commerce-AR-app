@@ -36,8 +36,10 @@ class PlpFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
         setContent {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                PlpScreen(viewModel)
+            MaterialTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    PlpScreen(viewModel)
+                }
             }
         }
     }

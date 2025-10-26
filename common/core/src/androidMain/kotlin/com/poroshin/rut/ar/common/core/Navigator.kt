@@ -4,60 +4,60 @@ import android.os.Bundle
 import com.github.terrakok.cicerone.Router
 
 /**
- * Абстракция навигации для модулей приложения.
+ * Navigation abstraction for application modules.
  *
- * Реализация переводит логический [NavigationTree] + параметры в конкретные Screen'ы и
- * выполняет команды на переданном [router].
+ * Implementation translates logical [NavigationTree] + parameters into specific Screen's and
+ * executes commands on the passed [router].
  */
 interface Navigator {
     /**
-     * Выполнить навигацию (push) на экран, соответствующий [key].
+     * Execute navigation (push) to screen corresponding to [key].
      *
-     * @param router Router, на котором выполнять команду.
-     * @param key логический ключ экрана из [NavigationTree].
-     * @param params дополнительные параметры, по умолчанию пустой [Bundle].
+     * @param router Router on which to execute the command.
+     * @param key logical screen key from [NavigationTree].
+     * @param params additional parameters, empty [Bundle] by default.
      */
     fun navigateTo(router: Router, key: NavigationTree, params: Bundle = Bundle())
 
     /**
-     * Запустить flow — семантически начать новый поток навигации (если router — [FlowRouter],
-     * будет использован `startFlow`, иначе — обычный `navigateTo`).
+     * Start flow — semantically start new navigation flow (if router is [FlowRouter],
+     * `startFlow` will be used, otherwise — regular `navigateTo`).
      *
-     * @param router Router, на котором выполнять команду.
-     * @param key логический ключ экрана из [NavigationTree].
-     * @param params дополнительные параметры, по умолчанию пустой [Bundle].
+     * @param router Router on which to execute the command.
+     * @param key logical screen key from [NavigationTree].
+     * @param params additional parameters, empty [Bundle] by default.
      */
     fun startFlow(router: Router, key: NavigationTree, params: Bundle = Bundle())
 
     /**
-     * Установить новый корень навигации (newRootScreen).
+     * Set new navigation root (newRootScreen).
      *
-     * @param router Router, на котором выполнять команду.
-     * @param key логический ключ экрана из [NavigationTree].
-     * @param params дополнительные параметры, по умолчанию пустой [Bundle].
+     * @param router Router on which to execute the command.
+     * @param key logical screen key from [NavigationTree].
+     * @param params additional parameters, empty [Bundle] by default.
      */
     fun newRootScreen(router: Router, key: NavigationTree, params: Bundle = Bundle())
 
     /**
-     * Выполнить "pop" — шаг назад.
+     * Execute "pop" — step back.
      *
-     * @param router Router, на котором выполнять команду.
+     * @param router Router on which to execute the command.
      */
     fun pop(router: Router)
 
     /**
-     * Выполнить pop до указанного логического ключа (popTo).
+     * Execute pop to specified logical key (popTo).
      *
-     * @param router Router, на котором выполнять команду.
-     * @param key логический ключ экрана из [NavigationTree], до которого нужно откатиться.
-     * @param params дополнительные параметры, если нужно сопоставить Screen (по умолчанию пустой Bundle).
+     * @param router Router on which to execute the command.
+     * @param key logical screen key from [NavigationTree] to rollback to.
+     * @param params additional parameters if Screen matching is needed (empty Bundle by default).
      */
     fun popTo(router: Router, key: NavigationTree, params: Bundle = Bundle())
 
     /**
-     * Выполнить pop до корня навигации.
+     * Execute pop to navigation root.
      *
-     * @param router Router, на котором выполнять команду.
+     * @param router Router on which to execute the command.
      */
     fun popToRoot(router: Router)
 }

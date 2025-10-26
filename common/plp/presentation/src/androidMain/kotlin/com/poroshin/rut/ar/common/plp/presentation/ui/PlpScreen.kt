@@ -1,11 +1,16 @@
 package com.poroshin.rut.ar.common.plp.presentation.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.poroshin.rut.ar.common.plp.domain.Product
 import com.poroshin.rut.ar.common.plp.presentation.PlpViewModel
@@ -18,16 +23,22 @@ fun PlpScreen(
 ) {
     val state by viewModel.viewState.collectAsState()
 
-    when(val viewState = state) {
-        is PlpState.Content -> {
-            PlpContent(
-                state = viewState,
-                onProductClick = { sku -> viewModel.onEvent(PlpEvent.OnProductClick(sku)) }
-            )
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        when(val viewState = state) {
+            is PlpState.Content -> {
+                PlpContent(
+                    state = viewState,
+                    onProductClick = { sku -> viewModel.onEvent(PlpEvent.OnProductClick(sku)) }
+                )
+            }
 
-        is PlpState.Loading -> {
-            PlpLoading()
+            is PlpState.Loading -> {
+                PlpLoading()
+            }
         }
     }
 }
@@ -38,7 +49,8 @@ private fun PlpContent(
     onProductClick: (Long) -> Unit,
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(vertical = 12.dp),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(state.items.chunked(2)) { _, pair ->
             val left = pair.getOrNull(0)
@@ -57,9 +69,10 @@ private fun PlpContent(
 @Composable
 private fun PlpLoading() {
     LazyColumn(
-        contentPadding = PaddingValues(vertical = 12.dp),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.fillMaxSize()
     ) {
-        items(3) {
+        items(6) {
             PairPlpItemsShimmer()
         }
     }

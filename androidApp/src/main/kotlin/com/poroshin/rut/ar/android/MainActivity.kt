@@ -19,7 +19,7 @@ import org.koin.android.ext.android.inject
 class MainActivity : FragmentActivity() {
 
     private val navigatorHolder: NavigatorHolder by inject()
-    private val navigator: com.poroshin.rut.ar.common.core.Navigator by inject()
+    private val navigator: Navigator by inject()
     private val router: FlowRouter by inject()
 
     private val containerId: Int = View.generateViewId()
@@ -28,17 +28,19 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { context ->
-                    FragmentContainerView(context).apply {
-                        id = containerId
+            MyApplicationTheme {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { context ->
+                        FragmentContainerView(context).apply {
+                            id = containerId
+                        }
+                    },
+                )
+                LaunchedEffect(Unit) {
+                    if (savedInstanceState == null) {
+                        navigator.newRootScreen(router, NavigationTree.Plp)
                     }
-                },
-            )
-            LaunchedEffect(Unit) {
-                if (savedInstanceState == null) {
-                    navigator.newRootScreen(router, com.poroshin.rut.ar.common.core.NavigationTree.Plp)
                 }
             }
         }

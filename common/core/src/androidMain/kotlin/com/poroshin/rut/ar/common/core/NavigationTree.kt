@@ -1,9 +1,9 @@
 package com.poroshin.rut.ar.common.core
 
 /**
- * Дерево навигационных ключей — перечисление всех логических маршрутов/флоу приложения.
+ * Navigation tree keys — enumeration of all logical routes/flows of the application.
  *
- * Используется в `Navigator` для выбора, какой экран/фрагмент открыть.
+ * Used in `Navigator` to choose which screen/fragment to open.
  */
 enum class NavigationTree {
     Plp,

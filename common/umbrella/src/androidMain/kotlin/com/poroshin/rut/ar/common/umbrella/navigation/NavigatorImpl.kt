@@ -11,22 +11,22 @@ import com.poroshin.rut.ar.common.core.NavigationTree
 import com.poroshin.rut.ar.common.core.Navigator
 
 /**
- * Реализация [Navigator], которая преобразует [NavigationTree] в конкретные [Screen] (фрагменты).
+ * Implementation of [Navigator] that converts [NavigationTree] to specific [Screen] (fragments).
  *
- * Если в будущем понадобится передавать параметры в фрагменты — добавьте их в `Bundle` внутри
- * `getFragmentScreen` (в текущей реализации `params` не используются при создании фрагментов).
+ * If in the future it becomes necessary to pass parameters to fragments — add them to `Bundle` inside
+ * `getFragmentScreen` (in current implementation `params` are not used when creating fragments).
  */
 class NavigatorImpl : Navigator {
 
     /**
-     * Выполняет navigateTo с экраном, соответствующим [key].
+     * Executes navigateTo with screen corresponding to [key].
      */
     override fun navigateTo(router: Router, key: NavigationTree, params: Bundle) {
         router.navigateTo(getFragmentScreen(key, params))
     }
 
     /**
-     * Если [router] — [FlowRouter], вызывает `startFlow`, иначе — обычный `navigateTo`.
+     * If [router] is [FlowRouter], calls `startFlow`, otherwise — regular `navigateTo`.
      */
     override fun startFlow(router: Router, key: NavigationTree, params: Bundle) {
         (router as? FlowRouter)?.startFlow(getFragmentScreen(key, params))
@@ -34,39 +34,39 @@ class NavigatorImpl : Navigator {
     }
 
     /**
-     * Заменяет корень навигации на экран, соответствующий [key].
+     * Replaces navigation root with screen corresponding to [key].
      */
     override fun newRootScreen(router: Router, key: NavigationTree, params: Bundle) {
         router.newRootScreen(getFragmentScreen(key, params))
     }
 
     /**
-     * Выполнить "pop" — шаг назад.
+     * Execute "pop" — step back.
      */
     override fun pop(router: Router) {
         router.exit()
     }
 
     /**
-     * Выполнить pop до экрана, соответствующего [key].
+     * Execute pop to screen corresponding to [key].
      */
     override fun popTo(router: Router, key: NavigationTree, params: Bundle) {
         router.backTo(getFragmentScreen(key, params))
     }
 
     /**
-     * Выполнить pop до корня навигации.
+     * Execute pop to navigation root.
      */
     override fun popToRoot(router: Router) {
         router.backTo(null)
     }
 
     /**
-     * Маппинг [NavigationTree] -> [Screen].
+     * Mapping [NavigationTree] -> [Screen].
      *
-     * @param key ключ навигации.
-     * @param params дополнительные параметры (в текущей реализации не применяются, но оставлены для расширения).
-     * @return [Screen] с соответствующим фрагментом.
+     * @param key navigation key.
+     * @param params additional parameters (not applied in current implementation, but left for extension).
+     * @return [Screen] with corresponding fragment.
      */
     private fun getFragmentScreen(key: NavigationTree, params: Bundle): Screen {
         return when (key) {

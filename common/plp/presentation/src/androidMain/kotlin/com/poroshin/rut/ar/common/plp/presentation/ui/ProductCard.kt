@@ -1,19 +1,25 @@
 package com.poroshin.rut.ar.common.plp.presentation.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -33,65 +39,83 @@ fun ProductCard(
 	onProductClick: (Long) -> Unit,
 	modifier: Modifier = Modifier,
 ) {
-	Column(
+	Card(
 		modifier = modifier
-			.background(MaterialTheme.colorScheme.surface)
 			.clickable { onProductClick(product.sku) },
-		horizontalAlignment = Alignment.Start,
-		verticalArrangement = Arrangement.Top,
+		shape = RoundedCornerShape(12.dp),
+		elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
 	) {
-		AsyncImage(
-			model = ImageRequest.Builder(LocalContext.current)
-				.data(product.imageUrl)
-				.crossfade(true)
-				.build(),
-			contentDescription = product.name,
-			modifier = Modifier
-				.fillMaxWidth()
-				.aspectRatio(1f),
-			contentScale = ContentScale.FillWidth,
-		)
 		Column(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(horizontal = 12.dp, vertical = 10.dp),
-			verticalArrangement = Arrangement.spacedBy(6.dp),
+			horizontalAlignment = Alignment.Start,
+			verticalArrangement = Arrangement.Top,
 		) {
-			Text(
-				text = product.name,
-				style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-				maxLines = 2,
-				overflow = TextOverflow.Ellipsis,
-			)
-			Spacer(Modifier.height(2.dp))
+			Box(
+				modifier = Modifier
+					.fillMaxWidth()
+					.aspectRatio(1f)
+					.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+			) {
+				AsyncImage(
+					model = ImageRequest.Builder(LocalContext.current)
+						.data(product.imageUrl)
+						.crossfade(true)
+						.build(),
+					contentDescription = product.name,
+					modifier = Modifier
+						.fillMaxWidth()
+						.aspectRatio(1f),
+					contentScale = ContentScale.Crop,
+				)
+			}
+			
 			Column(
-				verticalArrangement = Arrangement.spacedBy(2.dp)
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 12.dp, vertical = 10.dp),
+				verticalArrangement = Arrangement.spacedBy(6.dp),
 			) {
 				Text(
-					text = "${product.price} ₽",
-					style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+					text = product.name,
+					style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+					maxLines = 2,
+					overflow = TextOverflow.Ellipsis,
+					color = MaterialTheme.colorScheme.onSurface
 				)
-				product.oldPrice?.let { old ->
+				
+				Spacer(Modifier.height(2.dp))
+				
+				Column(
+					verticalArrangement = Arrangement.spacedBy(2.dp)
+				) {
 					Text(
-						text = "$old ₽",
+						text = "${product.price} ₽",
+						style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+						color = MaterialTheme.colorScheme.onSurface
+					)
+					product.oldPrice?.let { old ->
+						Text(
+							text = "$old ₽",
+							style = MaterialTheme.typography.bodySmall.copy(
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								textDecoration = TextDecoration.LineThrough,
+							),
+							maxLines = 1,
+							overflow = TextOverflow.Clip,
+						)
+					}
+				}
+				
+				if (product.rate > 0.0) {
+					val rounded = round(product.rate * 10.0) / 10.0
+					Text(
+						text = "★ $rounded",
 						style = MaterialTheme.typography.bodySmall.copy(
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							textDecoration = TextDecoration.LineThrough,
-						),
-						maxLines = 1,
-						overflow = TextOverflow.Clip,
+							color = MaterialTheme.colorScheme.primary,
+							fontWeight = FontWeight.Medium,
+						)
 					)
 				}
-			}
-			if (product.rate > 0.0) {
-				val rounded = round(product.rate * 10.0) / 10.0
-				Text(
-					text = "★ $rounded",
-					style = MaterialTheme.typography.bodySmall.copy(
-						color = MaterialTheme.colorScheme.primary,
-						fontWeight = FontWeight.Medium,
-					)
-				)
 			}
 		}
 	}

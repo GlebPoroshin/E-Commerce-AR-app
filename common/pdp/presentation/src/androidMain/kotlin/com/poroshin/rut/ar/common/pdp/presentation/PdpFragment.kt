@@ -4,37 +4,38 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.github.terrakok.cicerone.Router
+import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
+import com.poroshin.rut.ar.common.ar.presentation.toBundle
+import com.poroshin.rut.ar.common.core.NavigationTree
+import com.poroshin.rut.ar.common.core.Navigator
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpAction
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpEvent
-import com.poroshin.rut.ar.common.pdp.presentation.model.PdpState
+import com.poroshin.rut.ar.common.pdp.presentation.ui.PdpScreen
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 class PdpFragment : Fragment() {
-    private val viewModel: PdpViewModel by inject<PdpViewModel>()
+    private val viewModel: PdpViewModel by inject()
+    private val router: Router by inject()
+    private val navigator: Navigator by inject()
+
+    private val isModelDownloaded = MutableStateFlow(false)
 
     private val skuArg: Long?
         get() = arguments?.getLong("sku")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isModelDownloaded.value = false
         val sku = skuArg ?: 1000L
         viewModel.onEvent(PdpEvent.OnCreate(sku))
     }
@@ -45,63 +46,51 @@ class PdpFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
         setContent {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                PdpScreen(viewModel)
+            MaterialTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    val state by viewModel.viewState.collectAsState()
+                    val downloaded by isModelDownloaded.collectAsState()
+                    PdpScreen(
+                        state = state,
+                        isModelDownloaded = downloaded,
+                        onModelLoadClick = { contentState ->
+                            viewModel.onEvent(PdpEvent.OnModelLoad(contentState))
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.viewAction.collect { action ->
+                when (action) {
+                    is PdpAction.OpenArObject -> {
+                        isModelDownloaded.value = true
+                        val params = ArObjectParams(
+                            filePath = action.filePath.toString(),
+                            widthMm = action.width,
+                            heightMm = action.height,
+                            depthMm = action.depth,
+                        )
+                        navigator.navigateTo(
+                            router = router,
+                            key = NavigationTree.Ar,
+                            params = params.toBundle(),
+                        )
+                    }
+                    is PdpAction.OpenArCovering -> {
+                        isModelDownloaded.value = true
+                        // TODO: handle covering navigation when implemented.
+                    }
+                }
             }
         }
     }
 
     companion object {
         fun newInstance(): PdpFragment = PdpFragment()
-    }
-}
-
-@Composable
-private fun PdpScreen(viewModel: PdpViewModel) {
-    val state by viewModel.viewState.collectAsState()
-    val isDownloadedState = remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        viewModel.viewAction.collect { action ->
-            when (action) {
-                is PdpAction.OpenArObject -> isDownloadedState.value = true
-                else -> { /* no-op */ }
-            }
-        }
-    }
-
-    when (val viewState = state) {
-        is PdpState.Loading -> CircularProgressIndicator()
-
-        is PdpState.Content -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(text = "Product Detail", style = MaterialTheme.typography.headlineLarge)
-                Text(text = "SKU: ${viewState.product.sku}", style = MaterialTheme.typography.titleMedium)
-                Text(text = viewState.product.name, style = MaterialTheme.typography.titleSmall)
-                Text(text = "Price: ${viewState.product.price}", style = MaterialTheme.typography.bodyMedium)
-
-                viewState.loadingState?.let { percent ->
-                    LinearProgressIndicator(progress = percent / 100f)
-                    Text(text = "Loading: $percent%", style = MaterialTheme.typography.bodySmall)
-                }
-
-                if (isDownloadedState.value) {
-                    Text(text = "Модель скачана", style = MaterialTheme.typography.titleMedium)
-                } else {
-                    Button(
-                        onClick = {
-                            viewModel.onEvent(
-                                PdpEvent.OnModelLoad(state = viewState)
-                            )
-                        }
-                    ) {
-                        Text("Скачать модель")
-                    }
-                }
-            }
-        }
     }
 }
