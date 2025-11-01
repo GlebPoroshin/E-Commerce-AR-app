@@ -6,6 +6,7 @@ package com.poroshin.rut.ar.common.pdp.domain
 data class ArInfo(
     val version: Int?,
     val arType: ArType,
+    val placement: ArPlacement,
     val arRecourceUrl: String,
     val width: Float, // In millimeters
     val height: Float,
@@ -13,6 +14,14 @@ data class ArInfo(
 )
 
 enum class ArType { OBJECT, FLOOR, WALL }
+
+enum class ArPlacement {
+    FLOOR,
+    CEILING,
+    ANY_HORIZONTAL,
+    ANY_VERTICAL,
+    ANY_SURFACE
+}
 
 enum class OsType { ANDROID, IOS }
 
