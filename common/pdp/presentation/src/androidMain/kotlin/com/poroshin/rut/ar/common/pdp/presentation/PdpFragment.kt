@@ -19,7 +19,6 @@ import com.poroshin.rut.ar.common.core.Navigator
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpAction
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpEvent
 import com.poroshin.rut.ar.common.pdp.presentation.ui.PdpScreen
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -28,16 +27,18 @@ class PdpFragment : Fragment() {
     private val router: Router by inject()
     private val navigator: Navigator by inject()
 
-    private val isModelDownloaded = MutableStateFlow(false)
-
     private val skuArg: Long?
         get() = arguments?.getLong("sku")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isModelDownloaded.value = false
         val sku = skuArg ?: 1000L
         viewModel.onEvent(PdpEvent.OnCreate(sku))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onEvent(PdpEvent.OnResume)
     }
 
     override fun onCreateView(
@@ -49,10 +50,8 @@ class PdpFragment : Fragment() {
             MaterialTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val state by viewModel.viewState.collectAsState()
-                    val downloaded by isModelDownloaded.collectAsState()
                     PdpScreen(
                         state = state,
-                        isModelDownloaded = downloaded,
                         onModelLoadClick = { contentState ->
                             viewModel.onEvent(PdpEvent.OnModelLoad(contentState))
                         },
@@ -68,7 +67,6 @@ class PdpFragment : Fragment() {
             viewModel.viewAction.collect { action ->
                 when (action) {
                     is PdpAction.OpenArObject -> {
-                        isModelDownloaded.value = true
                         val params = ArObjectParams(
                             filePath = action.filePath.toString(),
                             widthMm = action.width,
@@ -82,7 +80,6 @@ class PdpFragment : Fragment() {
                         )
                     }
                     is PdpAction.OpenArCovering -> {
-                        isModelDownloaded.value = true
                         // TODO: handle covering navigation when implemented.
                     }
                 }

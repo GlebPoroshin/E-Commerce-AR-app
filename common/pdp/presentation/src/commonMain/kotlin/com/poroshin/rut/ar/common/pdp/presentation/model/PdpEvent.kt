@@ -8,6 +8,8 @@ sealed class PdpEvent : UiEvent {
     class OnModelLoad(val state: PdpState.Content) : PdpEvent()
 
     data object OnRetry : PdpEvent()
+    
+    data object OnResume : PdpEvent()
 }
 
 
