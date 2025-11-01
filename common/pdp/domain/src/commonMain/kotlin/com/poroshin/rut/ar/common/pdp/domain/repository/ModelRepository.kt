@@ -14,4 +14,6 @@ interface ModelRepository {
         url: String,
         onProgress: (received: Long, total: Long?) -> Unit,
     )
+
+    suspend fun isModelFileExists(path: Path): Boolean
 }

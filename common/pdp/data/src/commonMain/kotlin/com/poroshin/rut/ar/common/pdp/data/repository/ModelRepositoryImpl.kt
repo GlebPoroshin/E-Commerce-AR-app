@@ -30,4 +30,8 @@ class ModelRepositoryImpl(
             onProgress = onProgress,
         )
     }
+
+    override suspend fun isModelFileExists(path: Path): Boolean {
+        return localModelDataSource.isModelFileExists(path)
+    }
 }
