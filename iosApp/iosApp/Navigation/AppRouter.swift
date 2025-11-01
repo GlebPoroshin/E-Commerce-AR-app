@@ -1,8 +1,9 @@
 import SwiftUI
+import ARApp
 
 enum AppRoute: Hashable {
     case productDetail(sku: Int64)
-    case arObject(filePath: String, widthMm: Float, heightMm: Float, depthMm: Float)
+    case arObject(filePath: String, widthMm: Float, heightMm: Float, depthMm: Float, placement: ArPlacement)
 }
 
 final class AppRouter: ObservableObject {

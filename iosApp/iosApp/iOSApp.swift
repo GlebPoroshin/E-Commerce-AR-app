@@ -17,12 +17,13 @@ struct iOSApp: App {
 							switch route {
 							case .productDetail(let sku):
 								PdpScreen(sku: sku)
-							case .arObject(let filePath, let widthMm, let heightMm, let depthMm):
+							case .arObject(let filePath, let widthMm, let heightMm, let depthMm, let placement):
 								ArScreen(
 									filePath: filePath,
 									modelWidthMm: widthMm,
                                     modelHeightMm: heightMm,
-                                    modelDepthMm: depthMm
+                                    modelDepthMm: depthMm,
+									placement: placement
 								)
 							}
 						}

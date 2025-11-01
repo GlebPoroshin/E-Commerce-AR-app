@@ -25,6 +25,7 @@ struct ArScreen: View {
     let modelWidthMm:  Float
     let modelHeightMm: Float
     let modelDepthMm:  Float
+    let placement: ArPlacement
 
     var body: some View {
         ZStack(alignment: .top) {

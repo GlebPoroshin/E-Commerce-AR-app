@@ -31,7 +31,8 @@ struct PdpScreen: View {
                                 filePath: pathString,
                                 widthMm: a.width,
                                 heightMm: a.height,
-                                depthMm: a.depth
+                                depthMm: a.depth,
+                                placement: a.placement
                             )
                         )
                     default: break
