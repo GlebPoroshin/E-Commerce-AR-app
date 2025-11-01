@@ -9,6 +9,7 @@ sealed class PdpState : UiState {
     data class Content(
         val loadingState: Int? = null,
         val product: ProductPageInfo,
+        val isModelExists: Boolean = false,
     ) : PdpState()
 
 }
