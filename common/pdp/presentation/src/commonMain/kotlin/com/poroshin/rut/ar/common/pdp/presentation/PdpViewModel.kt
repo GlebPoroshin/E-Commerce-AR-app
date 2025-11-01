@@ -3,6 +3,7 @@ package com.poroshin.rut.ar.common.pdp.presentation
 import androidx.lifecycle.viewModelScope
 import com.poroshin.rut.ar.common.mvi.SharedViewModel
 import com.poroshin.rut.ar.common.pdp.domain.GetPdpParams
+import com.poroshin.rut.ar.common.pdp.domain.usecase.CheckModelExistsUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.DownloadProductModelUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpAction
@@ -15,11 +16,12 @@ import org.koin.core.component.get
 class PdpViewModel(
     private val getProductPageInfo: GetProductPageInfoUseCase,
     private val downloadProductModelUseCase: DownloadProductModelUseCase,
+    private val checkModelExistsUseCase: CheckModelExistsUseCase,
 ) : SharedViewModel<PdpState, PdpEvent, PdpAction>(initialState = PdpState.Loading) {
 
     private object Resolver : KoinComponent
 
-    constructor() : this(Resolver.get(), Resolver.get())
+    constructor() : this(Resolver.get(), Resolver.get(), Resolver.get())
 
     private var sku: Long? = null
 
@@ -33,13 +35,26 @@ class PdpViewModel(
             is PdpEvent.OnRetry -> sku?.let { load(it) }
 
             is PdpEvent.OnModelLoad -> loadModel(event.state)
+            
+            is PdpEvent.OnResume -> sku?.let { checkModel(it) }
         }
     }
 
     private fun load(sku: Long) {
         viewModelScope.launch {
             val product = getProductPageInfo(GetPdpParams(sku))
-            updateState { PdpState.Content(product = product) }
+            val isModelExists = checkModelExistsUseCase(sku)
+            updateState { PdpState.Content(product = product, isModelExists = isModelExists) }
+        }
+    }
+
+    private fun checkModel(sku: Long) {
+        viewModelScope.launch {
+            val currentState = viewState.value
+            if (currentState is PdpState.Content) {
+                val isModelExists = checkModelExistsUseCase(sku)
+                updateState { currentState.copy(isModelExists = isModelExists) }
+            }
         }
     }
 
@@ -66,9 +81,15 @@ class PdpViewModel(
                     }
                 }
             )
+            
+            val finalState = viewState.value
+            if (finalState is PdpState.Content) {
+                updateState { finalState.copy(loadingState = null) }
+            }
+            
             sendAction(
                 PdpAction.OpenArObject(
-                    filePath =  path,
+                    filePath = path,
                     width = arInfo.width,
                     height = arInfo.height,
                     depth = arInfo.depth ?: 0f

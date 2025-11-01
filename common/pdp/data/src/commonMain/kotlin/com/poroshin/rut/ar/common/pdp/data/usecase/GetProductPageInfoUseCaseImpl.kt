@@ -9,7 +9,6 @@ import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
 import com.poroshin.rut.ar.common.pdp.domain.ProductPageInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class GetProductPageInfoUseCaseImpl : GetProductPageInfoUseCase {
