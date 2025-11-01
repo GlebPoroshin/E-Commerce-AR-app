@@ -55,6 +55,11 @@ class PdpFragment : Fragment() {
                         onModelLoadClick = { contentState ->
                             viewModel.onEvent(PdpEvent.OnModelLoad(contentState))
                         },
+                        onDeleteModelClick = { contentState ->
+                            viewModel.onEvent(
+                                PdpEvent.OnDeleteModel(contentState.product.sku)
+                            )
+                        },
                     )
                 }
             }
