@@ -1,5 +1,6 @@
 package com.poroshin.rut.ar.common.pdp.presentation.model
 
+import com.poroshin.rut.ar.common.ar.domain.ArPlacement
 import com.poroshin.rut.ar.common.mvi.UiAction
 import kotlinx.io.files.Path
 
@@ -9,6 +10,7 @@ sealed class PdpAction : UiAction {
         val width: Float,
         val height: Float,
         val depth: Float,
+        val placement: ArPlacement,
     ) : PdpAction()
 
     data class OpenArCovering(

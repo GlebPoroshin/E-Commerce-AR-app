@@ -72,6 +72,7 @@ class PdpFragment : Fragment() {
                             widthMm = action.width,
                             heightMm = action.height,
                             depthMm = action.depth,
+                            placement = action.placement,
                         )
                         navigator.navigateTo(
                             router = router,
