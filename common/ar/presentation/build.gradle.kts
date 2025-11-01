@@ -28,6 +28,7 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(projects.common.ar.domain)
+            implementation(projects.common.pdp.domain)
         }
         androidMain.dependencies {
             implementation(libs.compose.runtime)
@@ -36,6 +37,8 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
             implementation(libs.androidx.fragment)
+            implementation(libs.google.arcore)
+            implementation(libs.sceneform)
         }
 
 
@@ -61,4 +64,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
