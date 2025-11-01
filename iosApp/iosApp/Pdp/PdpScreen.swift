@@ -66,12 +66,22 @@ struct PdpScreen: View {
                 }
 
                 if content.isModelExists {
-                    Button("Посмотреть в AR") {
-                        holder.sendEvent(
-                            PdpEvent.OnModelLoad(state: content)
-                        )
+                    HStack(spacing: 12) {
+                        Button("Посмотреть в AR") {
+                            holder.sendEvent(
+                                PdpEvent.OnModelLoad(state: content)
+                            )
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button("Удалить модель") {
+                            holder.sendEvent(
+                                PdpEvent.OnDeleteModel(sku: content.product.sku)
+                            )
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
                     }
-                    .buttonStyle(.borderedProminent)
                 } else {
                     Button("Скачать модель") {
                         holder.sendEvent(
