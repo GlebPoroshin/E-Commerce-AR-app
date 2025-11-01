@@ -8,6 +8,8 @@ interface ModelRepository {
 
     suspend fun saveModelVersion(sku: Long, version: Int)
 
+    suspend fun deleteModel(sku: Long, path: Path)
+
     suspend fun downLoadModel(
         sku: Long,
         path: Path,

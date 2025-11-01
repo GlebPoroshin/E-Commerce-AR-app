@@ -10,6 +10,7 @@ sealed class PdpEvent : UiEvent {
     data object OnRetry : PdpEvent()
     
     data object OnResume : PdpEvent()
-}
 
+    data class OnDeleteModel(val sku: Long) : PdpEvent()
+}
 

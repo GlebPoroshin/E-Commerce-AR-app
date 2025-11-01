@@ -20,12 +20,24 @@ class LocalModelDataSource(private val settings: Settings) {
         settings.getIntOrNull(DEFAULT_KEY + sku)
     }
 
+    suspend fun removeModelVersion(sku: Long) = withContext(Dispatchers.IO) {
+        settings.remove(DEFAULT_KEY + sku)
+    }
+
     suspend fun isModelFileExists(path: Path): Boolean = withContext(Dispatchers.IO) {
         try {
             val metadata = SystemFileSystem.metadataOrNull(path)
             metadata?.isRegularFile == true
         } catch (e: Exception) {
             false
+        }
+    }
+
+    suspend fun deleteModelFile(path: Path) = withContext(Dispatchers.IO) {
+        try {
+            SystemFileSystem.delete(path, mustExist = false)
+        } catch (_: Exception) {
+            // ignore
         }
     }
 

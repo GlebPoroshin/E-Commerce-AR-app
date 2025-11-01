@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.poroshin.rut.ar.common.mvi.SharedViewModel
 import com.poroshin.rut.ar.common.pdp.domain.GetPdpParams
 import com.poroshin.rut.ar.common.pdp.domain.usecase.CheckModelExistsUseCase
+import com.poroshin.rut.ar.common.pdp.domain.usecase.DeleteProductModelUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.DownloadProductModelUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpAction
@@ -17,11 +18,12 @@ class PdpViewModel(
     private val getProductPageInfo: GetProductPageInfoUseCase,
     private val downloadProductModelUseCase: DownloadProductModelUseCase,
     private val checkModelExistsUseCase: CheckModelExistsUseCase,
+    private val deleteProductModelUseCase: DeleteProductModelUseCase,
 ) : SharedViewModel<PdpState, PdpEvent, PdpAction>(initialState = PdpState.Loading) {
 
     private object Resolver : KoinComponent
 
-    constructor() : this(Resolver.get(), Resolver.get(), Resolver.get())
+    constructor() : this(Resolver.get(), Resolver.get(), Resolver.get(), Resolver.get())
 
     private var sku: Long? = null
 
@@ -35,7 +37,7 @@ class PdpViewModel(
             is PdpEvent.OnRetry -> sku?.let { load(it) }
 
             is PdpEvent.OnModelLoad -> loadModel(event.state)
-            
+            is PdpEvent.OnDeleteModel -> deleteModel(event.sku)
             is PdpEvent.OnResume -> sku?.let { checkModel(it) }
         }
     }
@@ -54,6 +56,16 @@ class PdpViewModel(
             if (currentState is PdpState.Content) {
                 val isModelExists = checkModelExistsUseCase(sku)
                 updateState { currentState.copy(isModelExists = isModelExists) }
+            }
+        }
+    }
+
+    private fun deleteModel(sku: Long) {
+        viewModelScope.launch {
+            deleteProductModelUseCase(sku)
+            val currentState = viewState.value
+            if (currentState is PdpState.Content) {
+                updateState { currentState.copy(isModelExists = false, loadingState = null) }
             }
         }
     }
