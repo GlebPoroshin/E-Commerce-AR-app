@@ -22,7 +22,6 @@ import com.poroshin.rut.ar.common.pdp.presentation.model.PdpState
 @Composable
 fun PdpScreen(
     state: PdpState,
-    isModelDownloaded: Boolean,
     onModelLoadClick: (PdpState.Content) -> Unit,
 ) {
     when (state) {
@@ -33,7 +32,6 @@ fun PdpScreen(
         is PdpState.Content -> {
             PdpContent(
                 state = state,
-                isModelDownloaded = isModelDownloaded,
                 onModelLoadClick = onModelLoadClick,
             )
         }
@@ -55,7 +53,6 @@ private fun PdpLoading(
 @Composable
 private fun PdpContent(
     state: PdpState.Content,
-    isModelDownloaded: Boolean,
     onModelLoadClick: (PdpState.Content) -> Unit,
 ) {
     Column(
@@ -99,12 +96,12 @@ private fun PdpContent(
             }
         }
 
-        if (isModelDownloaded) {
-            Text(
-                text = "Модель скачана",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
+        if (state.isModelExists) {
+            Button(
+                onClick = { onModelLoadClick(state) }
+            ) {
+                Text(text = "Посмотреть в AR")
+            }
         } else {
             Button(
                 onClick = { onModelLoadClick(state) }

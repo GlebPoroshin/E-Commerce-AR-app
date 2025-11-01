@@ -16,7 +16,6 @@ struct PdpScreen: View {
         viewModel: PdpViewModel(),
         initialState: PdpState.Loading()
     )
-    @State private var isDownloaded: Bool = false
 
     @EnvironmentObject private var router: AppRouter
 
@@ -26,7 +25,6 @@ struct PdpScreen: View {
                 holder.start { action in
                     switch action {
                     case let a as PdpAction.OpenArObject:
-                        isDownloaded = true
                         let pathString = a.filePath.description
                         router.push(
                             .arObject(
@@ -66,14 +64,15 @@ struct PdpScreen: View {
                     }
                 }
 
-                if isDownloaded {
-                    Text("Модель скачана")
-                        .font(.headline)
-                        .foregroundStyle(.green)
+                if content.isModelExists {
+                    Button("Посмотреть в AR") {
+                        holder.sendEvent(
+                            PdpEvent.OnModelLoad(state: content)
+                        )
+                    }
+                    .buttonStyle(.borderedProminent)
                 } else {
                     Button("Скачать модель") {
-                        let url = content.product.ar?.arRecourceUrl ?? ""
-                        let version = content.product.ar?.version?.intValue ?? 0
                         holder.sendEvent(
                             PdpEvent.OnModelLoad(state: content)
                         )
