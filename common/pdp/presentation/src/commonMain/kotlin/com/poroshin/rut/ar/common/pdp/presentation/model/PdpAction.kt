@@ -1,7 +1,7 @@
 package com.poroshin.rut.ar.common.pdp.presentation.model
 
-import com.poroshin.rut.ar.common.ar.domain.ArPlacement
 import com.poroshin.rut.ar.common.mvi.UiAction
+import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 import kotlinx.io.files.Path
 
 sealed class PdpAction : UiAction {

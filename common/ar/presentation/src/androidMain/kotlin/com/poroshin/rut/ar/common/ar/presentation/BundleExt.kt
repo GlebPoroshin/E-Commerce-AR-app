@@ -2,7 +2,7 @@ package com.poroshin.rut.ar.common.ar.presentation
 
 import android.os.Bundle
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
-import com.poroshin.rut.ar.common.ar.domain.ArPlacement
+import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 
 private const val KEY_FILE_PATH = "ar.file_path"
 private const val KEY_WIDTH = "ar.width"
@@ -24,11 +24,13 @@ fun Bundle.toArObjectParams(): ArObjectParams? {
     if (!containsKey(KEY_WIDTH) || !containsKey(KEY_HEIGHT) || !containsKey(KEY_DEPTH)) {
         return null
     }
+
     val placement = try {
         ArPlacement.valueOf(placementName)
-    } catch (e: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         return null
     }
+
     return ArObjectParams(
         filePath = filePath,
         widthMm = getFloat(KEY_WIDTH),

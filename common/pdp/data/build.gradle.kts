@@ -24,7 +24,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.common.pdp.domain)
-            implementation(projects.common.ar.domain)
 
             implementation(libs.runtime)
             implementation(libs.koin.core)

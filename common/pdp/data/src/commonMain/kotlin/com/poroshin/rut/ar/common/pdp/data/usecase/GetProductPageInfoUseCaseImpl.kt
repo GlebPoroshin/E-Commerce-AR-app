@@ -1,8 +1,8 @@
 package com.poroshin.rut.ar.common.pdp.data.usecase
 
-import com.poroshin.rut.ar.common.ar.domain.ArPlacement
 import com.poroshin.rut.ar.common.pdp.data.currentOs
 import com.poroshin.rut.ar.common.pdp.domain.ArInfo
+import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 import com.poroshin.rut.ar.common.pdp.domain.ArType
 import com.poroshin.rut.ar.common.pdp.domain.GetPdpParams
 import com.poroshin.rut.ar.common.pdp.domain.OsType

@@ -1,12 +1,6 @@
 package com.poroshin.rut.ar.common.ar.domain
 
-enum class ArPlacement {
-    FLOOR,
-    CEILING,
-    ANY_HORIZONTAL,
-    ANY_VERTICAL,
-    ANY_SURFACE
-}
+import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 
 data class ArObjectParams(
     val filePath: String,

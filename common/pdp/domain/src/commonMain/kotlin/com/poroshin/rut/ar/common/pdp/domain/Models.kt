@@ -1,7 +1,5 @@
 package com.poroshin.rut.ar.common.pdp.domain
 
-import com.poroshin.rut.ar.common.ar.domain.ArPlacement
-
 /**
  * Additional info for AR. Field may be absent (null) in product.
  */
@@ -16,6 +14,14 @@ data class ArInfo(
 )
 
 enum class ArType { OBJECT, FLOOR, WALL }
+
+enum class ArPlacement {
+    FLOOR,
+    CEILING,
+    ANY_HORIZONTAL,
+    ANY_VERTICAL,
+    ANY_SURFACE
+}
 
 enum class OsType { ANDROID, IOS }
 
