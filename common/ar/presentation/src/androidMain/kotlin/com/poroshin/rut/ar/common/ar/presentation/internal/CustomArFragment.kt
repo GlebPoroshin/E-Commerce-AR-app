@@ -25,6 +25,7 @@ import com.google.ar.sceneform.collision.Box
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
@@ -99,10 +100,12 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     }
 
     override fun onCreateSessionConfig(session: Session): Config {
-        return super.onCreateSessionConfig(session).apply {
+        val config = super.onCreateSessionConfig(session).apply {
             planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-            lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+            lightEstimationMode = Config.LightEstimationMode.AMBIENT_INTENSITY
         }
+        Log.i(TAG, "Configured ARCore light estimation mode: ${config.lightEstimationMode}")
+        return config
     }
 
     override fun onUpdate(frameTime: FrameTime) {
@@ -327,14 +330,17 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         if (!force && modelRenderable != null) return
         controller.reportModelLoading(true)
         val file = File(params.filePath)
+
         if (!file.exists()) {
             controller.reportModelLoading(false)
             controller.reportError(ArSceneController.SceneError.ModelLoadingFailed)
             return
         }
+
         val uri = Uri.fromFile(file)
         ModelRenderable.builder()
             .setSource(requireContext(), uri)
+            .setIsFilamentGltf(true)
             .setRegistryId(uri.toString())
             .build()
             .thenAccept { renderable: ModelRenderable ->

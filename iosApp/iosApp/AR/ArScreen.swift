@@ -10,6 +10,7 @@ import SwiftUI
 import RealityKit
 import ARKit
 import Combine
+import ARApp
 
 @available(iOS 16.0, *)
 struct ArScreen: View {
@@ -36,6 +37,7 @@ struct ArScreen: View {
                     modelWidthMm: modelWidthMm,
                     modelHeightMm: modelHeightMm,
                     modelDepthMm: modelDepthMm,
+                    placement: placement,
                     onResetRequest:{ resetRequested = false },
                     resetRequested: resetRequested,
                     showGuidance: showGuidance
@@ -150,4 +152,3 @@ struct ArScreen: View {
         return cachesURL.appendingPathComponent(path)
     }
 }
-

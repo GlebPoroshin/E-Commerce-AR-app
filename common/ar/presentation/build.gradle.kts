@@ -39,16 +39,11 @@ kotlin {
             implementation(libs.androidx.fragment)
             implementation(libs.google.arcore)
             implementation(libs.sceneform)
+
         }
 
-
         jvmMain {
-            dependencies {
-                // Необходимо для сборки jmv модуля, так как применен jetpack compose plugin
-//                implementation(
-//                    "org.jetbrains.compose.desktop:desktop:${org.jetbrains.compose.ComposeBuildConfig.composeVersion}",
-//                )
-            }
+            dependencies {}
         }
     }
 }
