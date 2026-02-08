@@ -38,7 +38,8 @@ struct PdpScreen: View {
                             cartPriceText: a.cartSnapshot?.priceText,
                             cartImageUrl: a.cartSnapshot?.imageUrl
                         )
-                    default: break
+                    default:
+                        break
                     }
                 }
                 holder.sendEvent(PdpEvent.OnCreate(sku: sku))
@@ -53,80 +54,85 @@ struct PdpScreen: View {
             ProgressView().padding()
 
         case let content as PdpState.Content:
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Product Detail").font(.largeTitle).bold()
-                Text("SKU: \(content.product.sku)").font(.headline)
-                if let name = content.product.name as String? { Text(name) }
-                if let price = content.product.price as String? { Text("Price: \(price)") }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    PdpHeaderImage(urlString: firstImageUrl(from: content))
 
-                if let percent = content.loadingState?.intValue {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ProgressView(value: Double(percent) / 100.0)
-                        Text("Loading: \(percent)%")
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(content.product.name)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+
+                        Text("SKU \(content.product.sku)")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                    }
-                }
 
-                if content.isModelExists {
-                    HStack(spacing: 12) {
-                        Button("Посмотреть в AR") {
-                            holder.sendEvent(
-                                PdpEvent.OnModelLoad(state: content)
-                            )
-                        }
-                        .buttonStyle(.borderedProminent)
-
-                        Button("Удалить модель") {
-                            holder.sendEvent(
-                                PdpEvent.OnDeleteModel(sku: content.product.sku)
-                            )
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-                    }
-                } else {
-                    Button("Скачать модель") {
-                        holder.sendEvent(
-                            PdpEvent.OnModelLoad(state: content)
-                        )
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-
-                let quantity = Int(content.cartQuantity)
-                if quantity > 0 {
-                    HStack(spacing: 16) {
-                        Button("<") {
-                            holder.sendEvent(
-                                PdpEvent.OnDecreaseCart(sku: content.product.sku)
-                            )
-                        }
-                        .buttonStyle(.bordered)
-
-                        Text("\(quantity)")
+                        Text(content.product.price)
                             .font(.title3)
-                            .bold()
+                            .fontWeight(.bold)
 
-                        Button(">") {
-                            holder.sendEvent(
-                                PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content))
-                            )
+                        if let percent = content.loadingState?.intValue {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ProgressView(value: Double(percent) / 100.0)
+                                Text("Loading: \(percent)%")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
-                    }
-                } else {
-                    Button("Добавить в корзину") {
-                        holder.sendEvent(
-                            PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content))
-                        )
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
 
-                Spacer()
+                        if content.isModelExists {
+                            HStack(spacing: 12) {
+                                Button("Посмотреть в AR") {
+                                    holder.sendEvent(PdpEvent.OnModelLoad(state: content))
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .frame(maxWidth: .infinity)
+
+                                Button("Удалить модель") {
+                                    holder.sendEvent(PdpEvent.OnDeleteModel(sku: content.product.sku))
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                            }
+                        } else {
+                            Button("Скачать модель") {
+                                holder.sendEvent(PdpEvent.OnModelLoad(state: content))
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        let quantity = Int(content.cartQuantity)
+                        if quantity > 0 {
+                            HStack(spacing: 12) {
+                                Button("<") {
+                                    holder.sendEvent(PdpEvent.OnDecreaseCart(sku: content.product.sku))
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+
+                                Text("\(quantity)")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+
+                                Button(">") {
+                                    holder.sendEvent(PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content)))
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                            }
+                        } else {
+                            Button("Добавить в корзину") {
+                                holder.sendEvent(PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content)))
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                }
             }
-            .padding()
             .navigationTitle("PDP")
             .navigationBarTitleDisplayMode(.inline)
 
@@ -135,21 +141,63 @@ struct PdpScreen: View {
         }
     }
 
+    private func firstImageUrl(from content: PdpState.Content) -> String? {
+        return content.product.images.first
+    }
+
     private func makeSnapshot(from content: PdpState.Content) -> CartItemSnapshot {
-        let image: String = {
-            if let typed = content.product.images as? [String], let first = typed.first {
-                return first
-            }
-            if let nsArray = content.product.images as? NSArray {
-                return nsArray.compactMap { $0 as? String }.first ?? ""
-            }
-            return ""
-        }()
-        return CartItemSnapshot(
+        CartItemSnapshot(
             sku: content.product.sku,
             name: content.product.name,
             priceText: content.product.price,
-            imageUrl: image
+            imageUrl: firstImageUrl(from: content) ?? ""
         )
+    }
+}
+
+@available(iOS 16.0, *)
+private struct PdpHeaderImage: View {
+    let urlString: String?
+
+    var body: some View {
+        Group {
+            if let urlString, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity)
+                    case .failure:
+                        placeholder(text: "Ошибка загрузки изображения")
+                    case .empty:
+                        ZStack {
+                            placeholder(text: nil)
+                            ProgressView()
+                        }
+                    @unknown default:
+                        placeholder(text: "Нет изображения")
+                    }
+                }
+            } else {
+                placeholder(text: "Нет изображения")
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private func placeholder(text: String?) -> some View {
+        ZStack {
+            Color(uiColor: .secondarySystemBackground)
+            if let text {
+                Text(text)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .aspectRatio(4.0 / 3.0, contentMode: .fit)
     }
 }
