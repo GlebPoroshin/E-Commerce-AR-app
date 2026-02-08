@@ -36,6 +36,7 @@ import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
 import com.poroshin.rut.ar.common.ar.domain.ArPlacementPolicy
 import com.poroshin.rut.ar.common.ar.domain.ArPlaneType
 import com.poroshin.rut.ar.common.ar.domain.ArScaleCalculator
+import com.poroshin.rut.ar.common.ar.domain.ArTrackingStatus
 import com.poroshin.rut.ar.common.ar.domain.ArValidationResult
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
 import com.poroshin.rut.ar.common.ar.presentation.toBundle
@@ -123,20 +124,20 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         controller.reportTracking(resolveTrackingStatus(frame))
     }
 
-    private fun resolveTrackingStatus(frame: Frame): ArSceneController.TrackingStatus {
+    private fun resolveTrackingStatus(frame: Frame): ArTrackingStatus {
         val cameraTracking = frame.camera.trackingState
         return when (cameraTracking) {
             TrackingState.TRACKING -> {
                 val hasSuitablePlane = arSceneView.session?.getAllTrackables(Plane::class.java)
                     ?.any { it.trackingState == TrackingState.TRACKING && planeMatchesPlacement(it) } == true
                 if (hasSuitablePlane) {
-                    ArSceneController.TrackingStatus.Tracking
+                    ArTrackingStatus.Tracking
                 } else {
-                    ArSceneController.TrackingStatus.Searching
+                    ArTrackingStatus.SearchingSurface
                 }
             }
             TrackingState.PAUSED,
-            TrackingState.STOPPED -> ArSceneController.TrackingStatus.Lost
+            TrackingState.STOPPED -> ArTrackingStatus.Lost
         }
     }
 

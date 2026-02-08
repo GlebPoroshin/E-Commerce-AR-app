@@ -29,13 +29,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commitNow
 import androidx.fragment.app.viewModels
+import com.poroshin.rut.ar.common.ar.domain.ArTrackingStatus
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
 import com.poroshin.rut.ar.common.cart.presentation.CartQuantityViewModel
 import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityEvent
 import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityState
 import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController
 import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController.SceneError
-import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController.TrackingStatus
 import com.poroshin.rut.ar.common.ar.presentation.internal.CustomArFragment
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
 import kotlin.math.roundToInt
@@ -244,9 +244,9 @@ private fun TopControls(
         }
 
         val trackingMessage = when (uiState.trackingStatus) {
-            TrackingStatus.Searching -> "Ищем подходящую плоскость — перемещайте устройство."
-            TrackingStatus.Lost -> "Трекинг потерян. Наведите камеру на освещенную поверхность."
-            TrackingStatus.Tracking -> null
+            ArTrackingStatus.SearchingSurface -> "Ищем подходящую плоскость — перемещайте устройство."
+            ArTrackingStatus.Lost -> "Трекинг потерян. Наведите камеру на освещенную поверхность."
+            ArTrackingStatus.Tracking -> null
         }
         trackingMessage?.let {
             Text(

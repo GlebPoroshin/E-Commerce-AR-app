@@ -92,6 +92,7 @@ struct ARViewContainer: UIViewRepresentable {
         // UX
         private var guidanceLabel: UILabel?
         private var coachingOverlay: ARCoachingOverlayView?
+        private var trackingStatus: ArTrackingStatus = .searchingsurface
 
         // Loading
         private var loadCancellable: AnyCancellable?
@@ -199,6 +200,8 @@ struct ARViewContainer: UIViewRepresentable {
             setupCoachingOverlay(in: arView)
             if !hasValidModelDimensions {
                 updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+            } else if let frame = arView.session.currentFrame {
+                applyTrackingStatus(mapTrackingStatus(frame.camera.trackingState))
             }
 
             // Gestures
@@ -283,7 +286,7 @@ struct ARViewContainer: UIViewRepresentable {
                 return
             }
             guard trackingIsReliable() else {
-                updateGuidanceLabel(text: "Point camera and move device to improve tracking")
+                applyTrackingStatus(.searchingsurface)
                 return
             }
 
@@ -707,11 +710,42 @@ struct ARViewContainer: UIViewRepresentable {
 
         private func trackingIsReliable() -> Bool {
             guard let frame = arView?.session.currentFrame else { return false }
-            switch frame.camera.trackingState {
-            case .normal: return true
-            case .limited: return false
-            @unknown default: return false
+            return mapTrackingStatus(frame.camera.trackingState) == .tracking
+        }
+
+        private func mapTrackingStatus(_ state: ARCamera.TrackingState) -> ArTrackingStatus {
+            switch state {
+            case .normal:
+                return .tracking
+            case .limited:
+                return .searchingsurface
+            case .notAvailable:
+                return .lost
+            @unknown default:
+                return .lost
             }
+        }
+
+        private func applyTrackingStatus(_ status: ArTrackingStatus) {
+            trackingStatus = status
+            switch status {
+            case .tracking:
+                if hasValidModelDimensions {
+                    updateGuidanceLabel(text: "Tap to place. Long press + drag. Two fingers — rotate.")
+                }
+            case .searchingsurface:
+                updateGuidanceLabel(text: "Searching for a suitable surface. Move your device")
+            case .lost:
+                updateGuidanceLabel(text: "Tracking lost. Point camera at a well-lit surface")
+            default:
+                updateGuidanceLabel(text: "Searching for a suitable surface. Move your device")
+            }
+        }
+
+        func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
+            let nextStatus = mapTrackingStatus(camera.trackingState)
+            guard nextStatus != trackingStatus else { return }
+            applyTrackingStatus(nextStatus)
         }
 
         // MARK: Placement bookkeeping

@@ -1,5 +1,6 @@
 package com.poroshin.rut.ar.common.ar.presentation.internal
 
+import com.poroshin.rut.ar.common.ar.domain.ArTrackingStatus
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,12 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class ArSceneController : ViewModel() {
-
-    enum class TrackingStatus {
-        Searching,
-        Tracking,
-        Lost,
-    }
 
     sealed class SceneError {
         data object ModelLoadingFailed : SceneError()
@@ -24,7 +19,7 @@ class ArSceneController : ViewModel() {
     }
 
     data class UiState(
-        val trackingStatus: TrackingStatus = TrackingStatus.Searching,
+        val trackingStatus: ArTrackingStatus = ArTrackingStatus.SearchingSurface,
         val isModelLoading: Boolean = false,
         val lastError: SceneError? = null,
         val isSingleMode: Boolean = true,
@@ -58,7 +53,7 @@ class ArSceneController : ViewModel() {
         _uiState.update { it.copy(lastError = null, isModelLoading = true) }
     }
 
-    internal fun reportTracking(status: TrackingStatus) {
+    internal fun reportTracking(status: ArTrackingStatus) {
         _uiState.update { it.copy(trackingStatus = status) }
     }
 
