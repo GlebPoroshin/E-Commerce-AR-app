@@ -16,6 +16,7 @@ import com.google.ar.core.Config
 import com.google.ar.core.Frame
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
+import com.google.ar.core.Pose
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
@@ -33,6 +34,7 @@ import com.poroshin.rut.ar.common.ar.presentation.toBundle
 import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlinx.coroutines.launch
 
 class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
@@ -203,16 +205,18 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             if (!trackable.isPoseInPolygon(result.hitPose)) continue
             if (!planeMatchesPlacement(trackable)) continue
 
-            val newAnchor = result.createAnchor()
+            val newAnchor = createClampedAnchor(result)
             val newParent = AnchorNode(newAnchor).apply { setParent(arSceneView.scene) }
             val previousParent = node.parent as? AnchorNode
 
             node.parent = newParent
             if (hasIntersection(node, skip = node)) {
                 node.parent = previousParent
+                newAnchor.detach()
                 newParent.setParent(null)
                 controller.reportError(ArSceneController.SceneError.Collision)
             } else {
+                previousParent?.anchor?.detach()
                 previousParent?.setParent(null)
                 controller.reportError(null)
                 Log.d(TAG, "Model moved to ${anchorPoseToString(newAnchor)}")
@@ -232,7 +236,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             placedNodes.clear()
         }
 
-        val anchor = hit.createAnchor()
+        val anchor = createClampedAnchor(hit)
         val anchorNode = AnchorNode(anchor).apply {
             setParent(arSceneView.scene)
         }
@@ -275,7 +279,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     private fun computeWorldAabb(node: TransformableNode, shape: Box): Aabb? {
         val worldScale = node.worldScale
-        val halfExtents = Vector3(
+        val localHalfExtents = Vector3(
             shape.size.x * worldScale.x * 0.5f,
             shape.size.y * worldScale.y * 0.5f,
             shape.size.z * worldScale.z * 0.5f,
@@ -287,6 +291,35 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         )
         val rotatedCenter = Quaternion.rotateVector(node.worldRotation, localCenter)
         val worldCenter = Vector3.add(node.worldPosition, rotatedCenter)
+        val q = node.worldRotation
+        val xx = q.x * q.x
+        val yy = q.y * q.y
+        val zz = q.z * q.z
+        val xy = q.x * q.y
+        val xz = q.x * q.z
+        val yz = q.y * q.z
+        val wx = q.w * q.x
+        val wy = q.w * q.y
+        val wz = q.w * q.z
+
+        val m00 = 1f - 2f * (yy + zz)
+        val m01 = 2f * (xy - wz)
+        val m02 = 2f * (xz + wy)
+
+        val m10 = 2f * (xy + wz)
+        val m11 = 1f - 2f * (xx + zz)
+        val m12 = 2f * (yz - wx)
+
+        val m20 = 2f * (xz - wy)
+        val m21 = 2f * (yz + wx)
+        val m22 = 1f - 2f * (xx + yy)
+
+        val halfExtents = Vector3(
+            abs(m00) * localHalfExtents.x + abs(m01) * localHalfExtents.y + abs(m02) * localHalfExtents.z,
+            abs(m10) * localHalfExtents.x + abs(m11) * localHalfExtents.y + abs(m12) * localHalfExtents.z,
+            abs(m20) * localHalfExtents.x + abs(m21) * localHalfExtents.y + abs(m22) * localHalfExtents.z,
+        )
+
         return Aabb(center = worldCenter, halfExtents = halfExtents)
     }
 
@@ -304,6 +337,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         placedNodes.forEach { node ->
             val parent = node.parent as? AnchorNode
             node.setParent(null)
+            parent?.anchor?.detach()
             parent?.setParent(null)
         }
         placedNodes.clear()
@@ -314,7 +348,46 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     private fun removeNode(node: TransformableNode) {
         val parent = node.parent as? AnchorNode
         node.setParent(null)
+        parent?.anchor?.detach()
         parent?.setParent(null)
+    }
+
+    private fun createClampedAnchor(hit: HitResult): Anchor {
+        val frame = arSceneView.arFrame ?: return hit.createAnchor()
+        val session = arSceneView.session ?: return hit.createAnchor()
+
+        val cameraPose = frame.camera.pose
+        val hitPose = hit.hitPose
+
+        val camX = cameraPose.tx()
+        val camY = cameraPose.ty()
+        val camZ = cameraPose.tz()
+
+        val hitX = hitPose.tx()
+        val hitY = hitPose.ty()
+        val hitZ = hitPose.tz()
+
+        val dx = hitX - camX
+        val dy = hitY - camY
+        val dz = hitZ - camZ
+        val distance = sqrt(dx * dx + dy * dy + dz * dz)
+
+        if (distance <= EPSILON) {
+            return hit.createAnchor()
+        }
+
+        val clampedDistance = distance.coerceIn(MIN_PLACE_DISTANCE_METERS, MAX_PLACE_DISTANCE_METERS)
+        if (abs(clampedDistance - distance) <= 1e-3f) {
+            return hit.createAnchor()
+        }
+
+        val ratio = clampedDistance / distance
+        val clampedPose = Pose.makeTranslation(
+            camX + dx * ratio,
+            camY + dy * ratio,
+            camZ + dz * ratio,
+        )
+        return session.createAnchor(clampedPose)
     }
 
     private fun reloadModel() {
@@ -393,6 +466,8 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     companion object {
         private const val TAG = "CustomArFragment"
         private const val EPSILON = 1e-5f
+        private const val MIN_PLACE_DISTANCE_METERS = 0.35f
+        private const val MAX_PLACE_DISTANCE_METERS = 4.0f
 
         fun newInstance(params: ArObjectParams): CustomArFragment {
             return CustomArFragment().apply {
