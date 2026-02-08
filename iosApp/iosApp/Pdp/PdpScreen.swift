@@ -8,6 +8,7 @@
 
 import SwiftUI
 import ARApp
+import Foundation
 
 @available(iOS 16.0, *)
 struct PdpScreen: View {
@@ -26,14 +27,16 @@ struct PdpScreen: View {
                     switch action {
                     case let a as PdpAction.OpenArObject:
                         let pathString = a.filePath.description
-                        router.push(
-                            .arObject(
-                                filePath: pathString,
-                                widthMm: a.width,
-                                heightMm: a.height,
-                                depthMm: a.depth,
-                                placement: a.placement
-                            )
+                        router.presentAr(
+                            filePath: pathString,
+                            widthMm: a.width,
+                            heightMm: a.height,
+                            depthMm: a.depth,
+                            placement: a.placement,
+                            cartSku: a.cartSnapshot?.sku,
+                            cartName: a.cartSnapshot?.name,
+                            cartPriceText: a.cartSnapshot?.priceText,
+                            cartImageUrl: a.cartSnapshot?.imageUrl
                         )
                     default: break
                     }
@@ -91,6 +94,36 @@ struct PdpScreen: View {
                     .buttonStyle(.borderedProminent)
                 }
 
+                let quantity = Int(content.cartQuantity)
+                if quantity > 0 {
+                    HStack(spacing: 16) {
+                        Button("<") {
+                            holder.sendEvent(
+                                PdpEvent.OnDecreaseCart(sku: content.product.sku)
+                            )
+                        }
+                        .buttonStyle(.bordered)
+
+                        Text("\(quantity)")
+                            .font(.title3)
+                            .bold()
+
+                        Button(">") {
+                            holder.sendEvent(
+                                PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content))
+                            )
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else {
+                    Button("Добавить в корзину") {
+                        holder.sendEvent(
+                            PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content))
+                        )
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
                 Spacer()
             }
             .padding()
@@ -100,5 +133,23 @@ struct PdpScreen: View {
         default:
             EmptyView()
         }
+    }
+
+    private func makeSnapshot(from content: PdpState.Content) -> CartItemSnapshot {
+        let image: String = {
+            if let typed = content.product.images as? [String], let first = typed.first {
+                return first
+            }
+            if let nsArray = content.product.images as? NSArray {
+                return nsArray.compactMap { $0 as? String }.first ?? ""
+            }
+            return ""
+        }()
+        return CartItemSnapshot(
+            sku: content.product.sku,
+            name: content.product.name,
+            priceText: content.product.price,
+            imageUrl: image
+        )
     }
 }

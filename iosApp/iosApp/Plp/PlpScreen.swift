@@ -23,7 +23,7 @@ struct PlpScreen: View {
             holder.start { action in
                 switch action {
                 case let a as PlpAction.OpenPdp:
-                    router.push(.productDetail(sku: a.sku))
+                    router.pushMainProduct(sku: a.sku)
                 default: break
                 }
             }
@@ -46,4 +46,3 @@ struct PlpScreen: View {
         }
     }
 }
-

@@ -32,6 +32,7 @@
 		08B8F0282E75A9AD009F7A80 /* Pdp */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Pdp; sourceTree = "<group>"; };
 		08B8F0332E75ADA0009F7A80 /* Navigation */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Navigation; sourceTree = "<group>"; };
 		08B8F0462E76AA76009F7A80 /* AR */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AR; sourceTree = "<group>"; };
+		08B8F05A2E9A1111009F7A80 /* Cart */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Cart; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				08B8F0462E76AA76009F7A80 /* AR */,
+				08B8F05A2E9A1111009F7A80 /* Cart */,
 				084B3BC42E71AB4E00DDFC8E /* MVI */,
 				08B8F0332E75ADA0009F7A80 /* Navigation */,
 				08B8F0282E75A9AD009F7A80 /* Pdp */,
@@ -128,6 +130,7 @@
 				08B8F0282E75A9AD009F7A80 /* Pdp */,
 				08B8F0332E75ADA0009F7A80 /* Navigation */,
 				08B8F0462E76AA76009F7A80 /* AR */,
+				08B8F05A2E9A1111009F7A80 /* Cart */,
 			);
 			name = iosApp;
 			productName = iosApp;

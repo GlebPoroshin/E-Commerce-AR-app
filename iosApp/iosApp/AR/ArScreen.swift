@@ -1,31 +1,34 @@
-//
-//  ArScreen.swift
-//  iosApp
-//
-//  Created by Глеб Порошин on 14.09.2025.
-//  Copyright © 2025 orgName. All rights reserved.
-//
-
 import SwiftUI
 import RealityKit
 import ARKit
 import Combine
+import ARApp
 
 @available(iOS 16.0, *)
 struct ArScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var resetRequested = false
     @State private var showGuidance = true
+    @State private var isSingleMode = true
     @State private var isLoading = true
     @State private var loadError: String?
     @State private var preloadedModel: ModelEntity?
     @State private var preloadCancellable: AnyCancellable?
 
+    @StateObject private var cartHolder = SharedVMHolder<CartQuantityState, CartQuantityEvent, CartQuantityAction, CartQuantityViewModel>(
+        viewModel: CartQuantityViewModel(),
+        initialState: CartQuantityState.Hidden()
+    )
+
     let filePath: String
-    let modelWidthMm:  Float
+    let modelWidthMm: Float
     let modelHeightMm: Float
-    let modelDepthMm:  Float
+    let modelDepthMm: Float
     let placement: ArPlacement
+    let cartSku: Int64?
+    let cartName: String?
+    let cartPriceText: String?
+    let cartImageUrl: String?
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -36,9 +39,10 @@ struct ArScreen: View {
                     modelWidthMm: modelWidthMm,
                     modelHeightMm: modelHeightMm,
                     modelDepthMm: modelDepthMm,
-                    onResetRequest:{ resetRequested = false },
+                    onResetRequest: { resetRequested = false },
                     resetRequested: resetRequested,
-                    showGuidance: showGuidance
+                    showGuidance: showGuidance,
+                    isSingleMode: isSingleMode
                 )
                 .ignoresSafeArea()
 
@@ -52,38 +56,86 @@ struct ArScreen: View {
                     .ignoresSafeArea()
             }
         }
-        .onAppear { startPreload() }
+        .onAppear {
+            startPreload()
+            cartHolder.start()
+            cartHolder.sendEvent(CartQuantityEvent.SetSnapshot(snapshot: makeSnapshot()))
+        }
+        .onDisappear {
+            cartHolder.stop()
+        }
     }
 
     private var controls: some View {
-        HStack {
-            Button { dismiss() } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(Circle())
+        VStack(spacing: 12) {
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(Circle())
+                }
+
+                Spacer()
+
+                Button { showGuidance.toggle() } label: {
+                    Image(systemName: showGuidance ? "eye.slash.circle.fill" : "eye.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(Circle())
+                }
+
+                Button { isSingleMode.toggle() } label: {
+                    Text(isSingleMode ? "1" : "N")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(Circle())
+                }
+
+                Button { resetRequested = true } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(Circle())
+                }
             }
 
-            Spacer()
+            if let content = cartHolder.state as? CartQuantityState.Content {
+                let quantity = Int(content.quantity)
+                HStack(spacing: 12) {
+                    if quantity > 0 {
+                        Button("<") {
+                            cartHolder.sendEvent(CartQuantityEvent.OnDecrease())
+                        }
+                        .buttonStyle(.bordered)
 
-            Button { showGuidance.toggle() } label: {
-                Image(systemName: showGuidance ? "eye.slash.circle.fill" : "eye.circle.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(Circle())
-            }
+                        Text("\(quantity)")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
 
-            Button { resetRequested = true } label: {
-                Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(Circle())
+                        Button(">") {
+                            cartHolder.sendEvent(CartQuantityEvent.OnIncrease())
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        Button("Добавить в корзину") {
+                            cartHolder.sendEvent(CartQuantityEvent.OnIncrease())
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+                .padding(8)
+                .background(Color.black.opacity(0.35))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
     }
@@ -149,5 +201,20 @@ struct ArScreen: View {
         let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         return cachesURL.appendingPathComponent(path)
     }
-}
 
+    private func makeSnapshot() -> CartItemSnapshot? {
+        guard let sku = cartSku,
+              let name = cartName,
+              let price = cartPriceText,
+              let image = cartImageUrl else {
+            return nil
+        }
+
+        return CartItemSnapshot(
+            sku: sku,
+            name: name,
+            priceText: price,
+            imageUrl: image
+        )
+    }
+}

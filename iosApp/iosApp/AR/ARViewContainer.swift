@@ -24,6 +24,7 @@ struct ARViewContainer: UIViewRepresentable {
     var onResetRequest: () -> Void
     var resetRequested: Bool
     var showGuidance: Bool = true
+    var isSingleMode: Bool = true
 
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero)
@@ -40,6 +41,7 @@ struct ARViewContainer: UIViewRepresentable {
             context.coordinator.requestReset()
         }
         context.coordinator.updateGuidance(showGuidance)
+        context.coordinator.setSingleMode(isSingleMode)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -48,6 +50,7 @@ struct ARViewContainer: UIViewRepresentable {
             modelSize:       sizeMeters,
             resetHandler:    onResetRequest,
             showGuidance:    showGuidance,
+            singleMode:      isSingleMode,
             filePath:        filePath,
             preloadedModel:  preloadedModel
         )
@@ -62,6 +65,7 @@ struct ARViewContainer: UIViewRepresentable {
         private var modelEntity: ModelEntity?
         private var modelSize: M3
         private var showGuidance: Bool
+        private var isSingleMode: Bool
         private var reconstructionEnabled = false
         private let resetHandler: () -> Void
         var shouldReset = false
@@ -72,7 +76,6 @@ struct ARViewContainer: UIViewRepresentable {
         // UX
         private var guidanceLabel: UILabel?
         private var coachingOverlay: ARCoachingOverlayView?
-        private var lightAnchor: AnchorEntity?
 
         // Loading
         private var loadCancellable: AnyCancellable?
@@ -82,6 +85,8 @@ struct ARViewContainer: UIViewRepresentable {
         private var longGR: UILongPressGestureRecognizer?
         private var panGR: UIPanGestureRecognizer?
         private var dragRaycast: ARTrackedRaycast?
+        private var placedAnchors: [AnchorEntity] = []
+        private var placedEntities: [ModelEntity] = []
 
         // Inputs
         let filePath: String
@@ -94,12 +99,14 @@ struct ARViewContainer: UIViewRepresentable {
         init(modelSize: M3,
              resetHandler: @escaping () -> Void,
              showGuidance: Bool,
+             singleMode: Bool,
              filePath: String,
              preloadedModel: ModelEntity?)
         {
             self.modelSize       = modelSize
             self.resetHandler    = resetHandler
             self.showGuidance    = showGuidance
+            self.isSingleMode    = singleMode
             self.filePath        = filePath
             self.preloadedModel  = preloadedModel
             super.init()
@@ -114,7 +121,7 @@ struct ARViewContainer: UIViewRepresentable {
             // Basic configuration
             let config = ARWorldTrackingConfiguration()
             config.worldAlignment = .gravity
-            config.planeDetection = [.horizontal, .vertical]
+            config.planeDetection = [.horizontal]
 
             // Automatic lighting from camera:
             // - brightness/temperature estimation (Light Estimation)
@@ -138,10 +145,10 @@ struct ARViewContainer: UIViewRepresentable {
             // Start session
             arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
 
-            // Occlusion/Physics from scene understanding:
-            // - with LiDAR: real geometry will provide occlusion and collisions
-            // - without LiDAR: flags won't hurt; no collisions with real world, but People Occlusion remains
-            arView.environment.sceneUnderstanding.options.insert([.occlusion, .physics])
+            // Occlusion/Physics/Lighting from scene understanding:
+            // - with LiDAR: real geometry provides occlusion, collisions, and receives lighting
+            // - without LiDAR: options are safe; People Occlusion still applies where supported
+            arView.environment.sceneUnderstanding.options.insert([.occlusion, .receivesLighting, .physics])
 
             // UI
             setupGuidanceLabel(in: arView)
@@ -157,6 +164,14 @@ struct ARViewContainer: UIViewRepresentable {
             guidanceLabel?.isHidden = !show
         }
 
+        func setSingleMode(_ single: Bool) {
+            guard isSingleMode != single else { return }
+            isSingleMode = single
+            if single {
+                collapseToSingleIfNeeded()
+            }
+        }
+
         func requestReset() {
             shouldReset = true
             guard let view = arView else { return }
@@ -168,9 +183,10 @@ struct ARViewContainer: UIViewRepresentable {
             // Clear scene
             view.session.pause()
             view.scene.anchors.removeAll()
-            lightAnchor = nil
             modelAnchor = nil
             modelEntity = nil
+            placedAnchors.removeAll()
+            placedEntities.removeAll()
 
             // Relaunch configuration fresh
             setup(on: view)
@@ -225,7 +241,7 @@ struct ARViewContainer: UIViewRepresentable {
             // 1) Strict real geometry hit test (best quality)
             if let hit = raycast(at: pt, in: arView,
                                  allowing: .existingPlaneGeometry,
-                                 alignment: .any)
+                                 alignment: .horizontal)
             {
                 placeOrMoveModel(using: hit, in: arView)
                 return
@@ -234,7 +250,7 @@ struct ARViewContainer: UIViewRepresentable {
             // 2) Fallback: estimated plane
             if let hit = raycast(at: pt, in: arView,
                                  allowing: .estimatedPlane,
-                                 alignment: .any)
+                                 alignment: .horizontal)
             {
                 placeOrMoveModel(using: hit, in: arView)
                 return
@@ -245,12 +261,13 @@ struct ARViewContainer: UIViewRepresentable {
 
         private func placeOrMoveModel(using result: ARRaycastResult, in arView: ARView) {
             // Store plane alignment for subsequent drag
-            placementAlignment = result.targetAlignment
+            placementAlignment = .horizontal
 
             // Clamp placement distance (safety/readability)
             let clamped = clampedTransform(for: result, in: arView)
 
-            if let anchor = modelAnchor, modelEntity != nil {
+            if isSingleMode, let anchor = modelAnchor, let entity = modelEntity {
+                let originalScale = entity.scale
                 // Reuse existing anchor → smooth move
                 anchor.move(to: Transform(matrix: clamped), relativeTo: nil, duration: 0.06, timingFunction: .easeInOut)
                 
@@ -259,18 +276,25 @@ struct ARViewContainer: UIViewRepresentable {
                 }
                 
                 // After moving – realign orientation and keep contact with the plane
-                if let entity = modelEntity {
-                    alignEntityToPlane(entity, with: clamped)
+                alignEntityToPlane(entity, with: clamped)
+                snapEntityToPlane(entity, relativeTo: anchor)
+                if entity.scale != originalScale {
+                    entity.scale = originalScale
                     snapEntityToPlane(entity, relativeTo: anchor)
                 }
                 updateGuidanceLabel(text: "Long press + drag for precise adjustment")
                 return
             }
 
+            if isSingleMode {
+                clearAllPlaced()
+            }
+
             // First-time placement
             let anchor = AnchorEntity(world: clamped)
             self.modelAnchor = anchor
             arView.scene.addAnchor(anchor)
+            placedAnchors.append(anchor)
 
             loadAndConfigureModel(into: anchor, in: arView)
         }
@@ -334,7 +358,8 @@ struct ARViewContainer: UIViewRepresentable {
         private func loadAndConfigureModel(into anchor: AnchorEntity, in arView: ARView) {
             updateGuidanceLabel(text: "Loading model…")
 
-            if let preloaded = preloadedModel {
+            if let preloaded = preloadedModel?.clone(recursive: true) {
+                preloaded.transform = .identity
                 configure(entity: preloaded, on: anchor, in: arView)
                 updateGuidanceLabel(text: "Tap to move. Long press + drag.")
                 return
@@ -351,12 +376,14 @@ struct ARViewContainer: UIViewRepresentable {
                     }
                 }, receiveValue: { [weak self] entity in
                     guard let self = self else { return }
+                    entity.transform = .identity
                     self.configure(entity: entity, on: anchor, in: arView)
                     self.updateGuidanceLabel(text: "Tap to move. Long press + drag.")
                 })
         }
 
         private func configure(entity: ModelEntity, on anchor: AnchorEntity, in arView: ARView) {
+            entity.transform = .identity
             // Add first so bounds are computed in anchor space
             anchor.addChild(entity)
 
@@ -386,9 +413,9 @@ struct ARViewContainer: UIViewRepresentable {
             arView.installGestures([.rotation], for: entity)
 
             self.modelEntity = entity
+            placedEntities.append(entity)
 
-            // Optional sun light if needed. EnvironmentTexturing already enabled.
-//            addSunLightIfNeeded(to: arView)
+            // Shadow light is configured in setup and updated from light estimate.
         }
 
         private func resolveURL(from path: String) -> URL {
@@ -417,7 +444,7 @@ struct ARViewContainer: UIViewRepresentable {
             let sz = targetMeters.z / max(size0.z, 1e-3)
 
             if uniform {
-                let s = min(sx, min(sy, sz))
+                let s = max(0.01 as Float, min(100.0 as Float, (sx + sy + sz) / 3.0))
                 entity.scale = M3(repeating: s)
             } else {
                 entity.scale = M3(sx, sy, sz)
@@ -462,34 +489,14 @@ struct ARViewContainer: UIViewRepresentable {
                              allowing: ARRaycastQuery.Target,
                              alignment: ARRaycastQuery.TargetAlignment) -> ARRaycastResult?
         {
-            // Pick the best result: prefer real geometry and floor classification
+            // Pick the lowest surface. Prefer classified floor hits when available.
             guard let query = arView.makeRaycastQuery(from: pt, allowing: allowing, alignment: alignment) else { return nil }
             let results = arView.session.raycast(query)
+            guard !results.isEmpty else { return nil }
 
-            // Sort: classified floor anchors first, then by distance from camera
-            let sorted = results.sorted(by: { (a: ARRaycastResult, b: ARRaycastResult) -> Bool in
-                let ac = (a.anchor as? ARPlaneAnchor)?.classification
-                let bc = (b.anchor as? ARPlaneAnchor)?.classification
-                let aIsFloor = (ac == .floor)
-                let bIsFloor = (bc == .floor)
-                if aIsFloor != bIsFloor { return aIsFloor && !bIsFloor }
-                
-                // Calculate distance from camera to hit point
-                guard let frame = arView.session.currentFrame else { return false }
-                let camPos = SIMD3<Float>(frame.camera.transform.columns.3.x,
-                                          frame.camera.transform.columns.3.y,
-                                          frame.camera.transform.columns.3.z)
-                let aPos = SIMD3<Float>(a.worldTransform.columns.3.x,
-                                        a.worldTransform.columns.3.y,
-                                        a.worldTransform.columns.3.z)
-                let bPos = SIMD3<Float>(b.worldTransform.columns.3.x,
-                                         b.worldTransform.columns.3.y,
-                                         b.worldTransform.columns.3.z)
-                let aDist = simd_length(aPos - camPos)
-                let bDist = simd_length(bPos - camPos)
-                return aDist < bDist
-            })
-            return sorted.first ?? results.first
+            let floorResults = results.filter { ($0.anchor as? ARPlaneAnchor)?.classification == .floor }
+            let candidates = floorResults.isEmpty ? results : floorResults
+            return candidates.min(by: { $0.worldTransform.columns.3.y < $1.worldTransform.columns.3.y }) ?? candidates.first
         }
 
         private func clampedTransform(for result: ARRaycastResult, in arView: ARView) -> simd_float4x4 {
@@ -520,23 +527,40 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
 
-        // MARK: Lighting
+        // MARK: Placement bookkeeping
 
-        private func addSunLightIfNeeded(to arView: ARView) {
-            guard lightAnchor == nil else { return }
+        private func collapseToSingleIfNeeded() {
+            guard placedAnchors.count > 1 else { return }
+            let keepAnchor = placedAnchors.last
+            for anchor in placedAnchors.dropLast() {
+                removeAnchor(anchor)
+            }
+            placedAnchors = keepAnchor.map { [$0] } ?? []
 
-            let sun = DirectionalLight()
-            sun.light.color = .white
-            sun.light.intensity = 20000   // Moderate intensity (EnvironmentTexturing adds realism)
-            sun.shadow = DirectionalLightComponent.Shadow(maximumDistance: 6, depthBias: 1e-4)
+            let keepEntity = keepAnchor.flatMap { anchor in
+                placedEntities.first { $0.anchor == anchor }
+            }
+            placedEntities = keepEntity.map { [$0] } ?? []
+            modelAnchor = keepAnchor
+            modelEntity = keepEntity
+        }
 
-            let la = AnchorEntity(world: .init(1))
-            sun.position = [0, 2.5, 0]
-            sun.look(at: .zero, from: sun.position, relativeTo: la)
+        private func clearAllPlaced() {
+            for anchor in placedAnchors {
+                removeAnchor(anchor)
+            }
+            placedAnchors.removeAll()
+            placedEntities.removeAll()
+            modelAnchor = nil
+            modelEntity = nil
+        }
 
-            la.addChild(sun)
-            arView.scene.addAnchor(la)
-            self.lightAnchor = la
+        private func removeAnchor(_ anchor: AnchorEntity) {
+            if let view = arView {
+                view.scene.removeAnchor(anchor)
+            } else {
+                anchor.removeFromParent()
+            }
         }
 
         // MARK: Guidance UI
@@ -579,7 +603,7 @@ struct ARViewContainer: UIViewRepresentable {
             let overlay = ARCoachingOverlayView()
             overlay.session = arView.session
             overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            overlay.goal = .anyPlane
+            overlay.goal = .horizontalPlane
             overlay.activatesAutomatically = true
             overlay.frame = arView.bounds
             arView.addSubview(overlay)
