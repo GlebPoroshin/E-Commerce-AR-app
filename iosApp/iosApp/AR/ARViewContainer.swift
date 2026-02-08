@@ -381,19 +381,33 @@ struct ARViewContainer: UIViewRepresentable {
                     dragRaycast = arView.session.trackedRaycast(q) { [weak self] results in
                         guard let self = self, let arView = self.arView, let hit = results.first else { return }
                         let t = self.clampedTransform(for: hit, in: arView)
+                        let previousTransform = anchor.transform
                         anchor.move(to: Transform(matrix: t), relativeTo: nil, duration: 0.03, timingFunction: .linear)
                         // Maintain orientation and plane contact while moving
                         self.alignEntityToPlane(entity, with: t)
                         self.snapEntityToPlane(entity, relativeTo: anchor)
+                        if self.hasIntersectionWithPlacedEntities(entity) {
+                            anchor.transform = previousTransform
+                            self.updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                        } else {
+                            self.updateGuidanceLabel(text: "Long press + drag for precise adjustment")
+                        }
                     }
                 }
             case .changed:
                 if dragRaycast == nil,
                    let hit = arView.raycast(from: loc, allowing: .estimatedPlane, alignment: placementAlignment).first {
                     let t = clampedTransform(for: hit, in: arView)
+                    let previousTransform = anchor.transform
                     anchor.move(to: Transform(matrix: t), relativeTo: nil, duration: 0.03, timingFunction: .linear)
                     alignEntityToPlane(entity, with: t)
                     snapEntityToPlane(entity, relativeTo: anchor)
+                    if hasIntersectionWithPlacedEntities(entity) {
+                        anchor.transform = previousTransform
+                        updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                    } else {
+                        updateGuidanceLabel(text: "Long press + drag for precise adjustment")
+                    }
                 }
             case .ended, .cancelled, .failed:
                 dragRaycast?.stopTracking(); dragRaycast = nil
