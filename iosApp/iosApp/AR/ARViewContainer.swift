@@ -47,12 +47,8 @@ struct ARViewContainer: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        let clampedWidth = max(modelWidthMm, 1.0)
-        let clampedHeight = max(modelHeightMm, 1.0)
-        let clampedDepth = max(modelDepthMm, 1.0)
-        let sizeMeters = M3(clampedWidth, clampedHeight, clampedDepth) / 1000
         return Coordinator(
-            modelSize:       sizeMeters,
+            rawModelSizeMm:  M3(modelWidthMm, modelHeightMm, modelDepthMm),
             resetHandler:    onResetRequest,
             showGuidance:    showGuidance,
             singleMode:      isSingleMode,
@@ -82,6 +78,7 @@ struct ARViewContainer: UIViewRepresentable {
         private weak var arView: ARView?
         private var modelAnchor: AnchorEntity?
         private var modelEntity: ModelEntity?
+        private let hasValidModelDimensions: Bool
         private var modelSize: M3
         private var showGuidance: Bool
         private var isSingleMode: Bool
@@ -115,6 +112,8 @@ struct ARViewContainer: UIViewRepresentable {
         // Safe placement distance range (meters)
         private let minPlaceDistance: Float = 0.35
         private let maxPlaceDistance: Float = 4.0
+        private let minScale: Float = 0.01
+        private let maxScale: Float = 100.0
 
         private var placementPolicy: PlacementPolicy {
             switch placement.name {
@@ -131,7 +130,7 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
 
-        init(modelSize: M3,
+        init(rawModelSizeMm: M3,
              resetHandler: @escaping () -> Void,
              showGuidance: Bool,
              singleMode: Bool,
@@ -139,7 +138,15 @@ struct ARViewContainer: UIViewRepresentable {
              placement: ArPlacement,
              preloadedModel: ModelEntity?)
         {
-            self.modelSize       = modelSize
+            let minDimension: Float = 1.0
+            self.hasValidModelDimensions = rawModelSizeMm.x.isFinite &&
+                rawModelSizeMm.y.isFinite &&
+                rawModelSizeMm.z.isFinite &&
+                rawModelSizeMm.x >= minDimension &&
+                rawModelSizeMm.y >= minDimension &&
+                rawModelSizeMm.z >= minDimension
+            let safeMm = simd_max(rawModelSizeMm, M3(repeating: minDimension))
+            self.modelSize = safeMm / 1000
             self.resetHandler    = resetHandler
             self.showGuidance    = showGuidance
             self.isSingleMode    = singleMode
@@ -190,6 +197,9 @@ struct ARViewContainer: UIViewRepresentable {
             // UI
             setupGuidanceLabel(in: arView)
             setupCoachingOverlay(in: arView)
+            if !hasValidModelDimensions {
+                updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+            }
 
             // Gestures
             installGesturesIfNeeded(on: arView)
@@ -268,6 +278,10 @@ struct ARViewContainer: UIViewRepresentable {
 
         @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView else { return }
+            guard hasValidModelDimensions else {
+                updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+                return
+            }
             guard trackingIsReliable() else {
                 updateGuidanceLabel(text: "Point camera and move device to improve tracking")
                 return
@@ -387,6 +401,11 @@ struct ARViewContainer: UIViewRepresentable {
         // MARK: Model loading & configuration
 
         private func loadAndConfigureModel(into anchor: AnchorEntity, in arView: ARView) {
+            guard hasValidModelDimensions else {
+                updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+                removeAnchor(anchor)
+                return
+            }
             updateGuidanceLabel(text: "Loading model…")
 
             if let preloaded = preloadedModel?.clone(recursive: true) {
@@ -525,7 +544,8 @@ struct ARViewContainer: UIViewRepresentable {
             let sz = targetMeters.z / max(size0.z, 1e-3)
 
             if uniform {
-                let s = max(0.01 as Float, min(100.0 as Float, (sx + sy + sz) / 3.0))
+                let candidate = (sx + sy + sz) / 3.0
+                let s = max(minScale, min(maxScale, candidate))
                 entity.scale = M3(repeating: s)
             } else {
                 entity.scale = M3(sx, sy, sz)
