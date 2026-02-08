@@ -9,6 +9,9 @@ data class ArObjectParams(
     val heightMm: Float,
     val depthMm: Float,
     val placement: ArPlacement,
+    val placementPolicy: ArPlacement = placement,
+    val distancePolicy: ArDistancePolicy = ArDistancePolicy.Default,
+    val scalePolicy: ArScalePolicy = ArScalePolicy.Default,
     val cartItem: CartItemSnapshot? = null,
 )
 
