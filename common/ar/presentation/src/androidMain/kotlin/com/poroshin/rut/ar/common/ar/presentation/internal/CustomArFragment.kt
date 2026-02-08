@@ -194,7 +194,10 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             when (motionEvent.actionMasked) {
                 MotionEvent.ACTION_MOVE -> handleDrag(motionEvent)
                 MotionEvent.ACTION_CANCEL,
-                MotionEvent.ACTION_UP -> draggingNode = null
+                MotionEvent.ACTION_UP -> {
+                    finalizeDrag()
+                    draggingNode = null
+                }
             }
         }
 
@@ -209,6 +212,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     private fun handleDrag(event: MotionEvent) {
         val node = draggingNode ?: return
+        val parentNode = node.parent as? AnchorNode ?: return
         if (event.pointerCount > 1) return
         val frame = arSceneView.arFrame ?: return
         val hits = frame.hitTest(event)
@@ -217,24 +221,51 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             if (!trackable.isPoseInPolygon(result.hitPose)) continue
             if (!planeMatchesPlacement(trackable)) continue
 
-            val newAnchor = createClampedAnchor(result)
-            val newParent = AnchorNode(newAnchor).apply { setParent(arSceneView.scene) }
-            val previousParent = node.parent as? AnchorNode
-
-            node.parent = newParent
+            val targetPose = createClampedPose(result)
+            val previousPosition = parentNode.worldPosition
+            parentNode.worldPosition = Vector3(
+                targetPose.tx(),
+                targetPose.ty(),
+                targetPose.tz(),
+            )
             if (hasIntersection(node, skip = node)) {
-                node.parent = previousParent
-                newAnchor.detach()
-                newParent.setParent(null)
+                parentNode.worldPosition = previousPosition
                 controller.reportError(ArSceneController.SceneError.Collision)
             } else {
-                previousParent?.anchor?.detach()
-                previousParent?.setParent(null)
                 controller.reportError(null)
-                Log.d(TAG, "Model moved to ${anchorPoseToString(newAnchor)}")
+                Log.d(TAG, "Model moved to ${targetPose.translation.contentToString()}")
             }
             break
         }
+    }
+
+    private fun finalizeDrag() {
+        val node = draggingNode ?: return
+        val oldParent = node.parent as? AnchorNode ?: return
+        val session = arSceneView.session ?: return
+
+        val worldPosition = node.worldPosition
+        val worldRotation = node.worldRotation
+        val worldScale = node.worldScale
+
+        val newAnchor = session.createAnchor(
+            Pose.makeTranslation(
+                worldPosition.x,
+                worldPosition.y,
+                worldPosition.z,
+            )
+        )
+        val newParent = AnchorNode(newAnchor).apply {
+            setParent(arSceneView.scene)
+        }
+
+        node.setParent(newParent)
+        node.worldPosition = worldPosition
+        node.worldRotation = worldRotation
+        node.worldScale = worldScale
+
+        oldParent.anchor?.detach()
+        oldParent.setParent(null)
     }
 
     private fun placeModel(hit: HitResult) {
@@ -356,8 +387,19 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     }
 
     private fun createClampedAnchor(hit: HitResult): Anchor {
-        val frame = arSceneView.arFrame ?: return hit.createAnchor()
         val session = arSceneView.session ?: return hit.createAnchor()
+        val clampedPose = createClampedPose(hit)
+        if (abs(clampedPose.tx() - hit.hitPose.tx()) <= EPSILON &&
+            abs(clampedPose.ty() - hit.hitPose.ty()) <= EPSILON &&
+            abs(clampedPose.tz() - hit.hitPose.tz()) <= EPSILON
+        ) {
+            return hit.createAnchor()
+        }
+        return session.createAnchor(clampedPose)
+    }
+
+    private fun createClampedPose(hit: HitResult): Pose {
+        val frame = arSceneView.arFrame ?: return hit.hitPose
 
         val cameraPose = frame.camera.pose
         val hitPose = hit.hitPose
@@ -376,21 +418,20 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         val distance = sqrt(dx * dx + dy * dy + dz * dz)
 
         if (distance <= EPSILON) {
-            return hit.createAnchor()
+            return hitPose
         }
 
         val clampedDistance = params.distancePolicy.clamp(distance)
         if (abs(clampedDistance - distance) <= 1e-3f) {
-            return hit.createAnchor()
+            return hitPose
         }
 
         val ratio = clampedDistance / distance
-        val clampedPose = Pose.makeTranslation(
+        return Pose.makeTranslation(
             camX + dx * ratio,
             camY + dy * ratio,
             camZ + dz * ratio,
         )
-        return session.createAnchor(clampedPose)
     }
 
     private fun reloadModel() {
