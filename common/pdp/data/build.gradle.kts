@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -24,8 +23,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.common.pdp.domain)
-
-            implementation(libs.runtime)
+            implementation(projects.common.core)
+            implementation(projects.common.cart.domain)
             implementation(libs.koin.core)
 
             implementation(libs.kotlinx.io.core)
@@ -35,16 +34,12 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-
-            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
         }
         androidMain.dependencies {
-            implementation(libs.android.driver)
             implementation(libs.ktor.client.okhttp)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-            implementation(libs.native.driver)
         }
     }
 }
@@ -60,5 +55,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
-

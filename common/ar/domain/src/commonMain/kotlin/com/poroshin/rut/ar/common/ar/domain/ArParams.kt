@@ -1,5 +1,6 @@
 package com.poroshin.rut.ar.common.ar.domain
 
+import com.poroshin.rut.ar.common.cart.domain.CartItemSnapshot
 import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 
 data class ArObjectParams(
@@ -8,6 +9,7 @@ data class ArObjectParams(
     val heightMm: Float,
     val depthMm: Float,
     val placement: ArPlacement,
+    val cartItem: CartItemSnapshot? = null,
 )
 
 data class ArCoveringParams(

@@ -1,27 +1,24 @@
 package com.poroshin.rut.ar.common.pdp.data.datasource
 
-import com.russhwolf.settings.Settings
+import com.poroshin.rut.ar.common.cart.domain.repository.CartRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
-class LocalModelDataSource(private val settings: Settings) {
+class LocalModelDataSource(private val cartRepository: CartRepository) {
 
     suspend fun saveModelVersion(sku: Long, version: Int = 0) = withContext(Dispatchers.IO) {
-        settings.putInt(
-            key = DEFAULT_KEY + sku,
-            value = version,
-        )
+        cartRepository.saveModelVersion(sku, version)
     }
 
     suspend fun checkModelVersion(sku: Long): Int? = withContext(Dispatchers.IO) {
-        settings.getIntOrNull(DEFAULT_KEY + sku)
+        cartRepository.getModelVersion(sku)
     }
 
     suspend fun removeModelVersion(sku: Long) = withContext(Dispatchers.IO) {
-        settings.remove(DEFAULT_KEY + sku)
+        cartRepository.deleteModelVersion(sku)
     }
 
     suspend fun isModelFileExists(path: Path): Boolean = withContext(Dispatchers.IO) {
@@ -40,6 +37,4 @@ class LocalModelDataSource(private val settings: Settings) {
             // ignore
         }
     }
-
-    private val DEFAULT_KEY = "model_"
 }

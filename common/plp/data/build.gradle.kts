@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -24,8 +23,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.common.plp.domain)
-
-            implementation(libs.runtime)
+            implementation(projects.common.core)
             implementation(libs.koin.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
@@ -35,11 +33,9 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.android.driver)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-            implementation(libs.native.driver)
         }
     }
 }
@@ -55,5 +51,4 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
 

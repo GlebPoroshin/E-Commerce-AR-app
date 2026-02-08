@@ -28,6 +28,7 @@ kotlin {
             implementation(projects.common.mvi)
             implementation(projects.common.pdp.domain)
             implementation(projects.common.ar.domain)
+            implementation(projects.common.cart.domain)
 
             implementation(libs.koin.core)
             implementation(libs.kotlinx.io.core)
@@ -63,4 +64,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-

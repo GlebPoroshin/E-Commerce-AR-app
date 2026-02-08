@@ -12,18 +12,16 @@ import com.poroshin.rut.ar.common.pdp.domain.usecase.CheckModelExistsUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.DeleteProductModelUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.DownloadProductModelUseCase
 import com.poroshin.rut.ar.common.pdp.domain.usecase.GetProductPageInfoUseCase
-import com.russhwolf.settings.Settings
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val pdpDataModule: Module = module {
-    single<Settings> { Settings() }
     single { LocalModelDataSource(get()) }
     single { RemoteModelDataSource(get()) }
 
     single<ModelRepository> { ModelRepositoryImpl(get(), get()) }
 
-    single<GetProductPageInfoUseCase> { GetProductPageInfoUseCaseImpl() }
+    single<GetProductPageInfoUseCase> { GetProductPageInfoUseCaseImpl(get()) }
     single<DownloadProductModelUseCase> { DownloadProductModelUseCaseImpl(get()) }
     single<CheckModelExistsUseCase> { CheckModelExistsUseCaseImpl(get()) }
     single<DeleteProductModelUseCase> { DeleteProductModelUseCaseImpl(get()) }

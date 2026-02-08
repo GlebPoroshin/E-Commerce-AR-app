@@ -7,7 +7,7 @@ data class ArInfo(
     val version: Int?,
     val arType: ArType,
     val placement: ArPlacement,
-    val arRecourceUrl: String,
+    val arResourceUrl: String,
     val width: Float, // In millimeters
     val height: Float,
     val depth: Float? = null

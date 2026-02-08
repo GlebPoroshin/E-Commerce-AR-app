@@ -1,5 +1,6 @@
 package com.poroshin.rut.ar.common.pdp.presentation.model
 
+import com.poroshin.rut.ar.common.cart.domain.CartItemSnapshot
 import com.poroshin.rut.ar.common.mvi.UiAction
 import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 import kotlinx.io.files.Path
@@ -11,6 +12,7 @@ sealed class PdpAction : UiAction {
         val height: Float,
         val depth: Float,
         val placement: ArPlacement,
+        val cartSnapshot: CartItemSnapshot?,
     ) : PdpAction()
 
     data class OpenArCovering(
