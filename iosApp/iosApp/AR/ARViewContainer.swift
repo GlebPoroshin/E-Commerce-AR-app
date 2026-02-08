@@ -440,10 +440,60 @@ struct ARViewContainer: UIViewRepresentable {
             // RealityKit rotation gesture (rotation only — no scaling)
             arView.installGestures([.rotation], for: entity)
 
+            if hasIntersectionWithPlacedEntities(entity) {
+                updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                removeAnchor(anchor)
+                placedAnchors.removeAll { $0 === anchor }
+                if modelAnchor === anchor {
+                    modelAnchor = nil
+                }
+                modelEntity = nil
+                return
+            }
+
             self.modelEntity = entity
             placedEntities.append(entity)
 
             // Shadow light is configured in setup and updated from light estimate.
+        }
+
+        private func hasIntersectionWithPlacedEntities(_ entity: ModelEntity) -> Bool {
+            guard let targetBounds = worldAabb(for: entity) else {
+                return false
+            }
+            for other in placedEntities {
+                guard other !== entity else { continue }
+                guard let otherBounds = worldAabb(for: other) else { continue }
+                if intersects(targetBounds, otherBounds) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        private func worldAabb(for entity: ModelEntity) -> (center: SIMD3<Float>, halfExtents: SIMD3<Float>)? {
+            let bounds = entity.visualBounds(recursive: true, relativeTo: nil)
+            let min = bounds.min
+            let max = bounds.max
+            guard min.x.isFinite, min.y.isFinite, min.z.isFinite else { return nil }
+            guard max.x.isFinite, max.y.isFinite, max.z.isFinite else { return nil }
+
+            let center = (min + max) * 0.5
+            let halfExtents = (max - min) * 0.5
+            return (center: center, halfExtents: halfExtents)
+        }
+
+        private func intersects(
+            _ lhs: (center: SIMD3<Float>, halfExtents: SIMD3<Float>),
+            _ rhs: (center: SIMD3<Float>, halfExtents: SIMD3<Float>),
+        ) -> Bool {
+            let dx = abs(lhs.center.x - rhs.center.x)
+            let dy = abs(lhs.center.y - rhs.center.y)
+            let dz = abs(lhs.center.z - rhs.center.z)
+
+            return dx <= (lhs.halfExtents.x + rhs.halfExtents.x) &&
+                dy <= (lhs.halfExtents.y + rhs.halfExtents.y) &&
+                dz <= (lhs.halfExtents.z + rhs.halfExtents.z)
         }
 
         private func resolveURL(from path: String) -> URL {
