@@ -157,7 +157,7 @@ class PdpViewModel(
                     filePath = path,
                     width = arInfo.width,
                     height = arInfo.height,
-                    depth = arInfo.depth ?: 0f,
+                    depth = resolveDepthMm(arInfo.width, arInfo.height, arInfo.depth),
                     placement = arInfo.placement,
                     cartSnapshot = product.toCartSnapshot(),
                 )
@@ -172,5 +172,10 @@ class PdpViewModel(
             priceText = price,
             imageUrl = images.firstOrNull().orEmpty(),
         )
+    }
+
+    private fun resolveDepthMm(widthMm: Float, heightMm: Float, depthMm: Float?): Float {
+        val fallback = minOf(widthMm, heightMm).coerceAtLeast(1f)
+        return depthMm?.takeIf { it > 0f } ?: fallback
     }
 }

@@ -47,7 +47,10 @@ struct ARViewContainer: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        let sizeMeters = M3(modelWidthMm, modelHeightMm, modelDepthMm) / 1000
+        let clampedWidth = max(modelWidthMm, 1.0)
+        let clampedHeight = max(modelHeightMm, 1.0)
+        let clampedDepth = max(modelDepthMm, 1.0)
+        let sizeMeters = M3(clampedWidth, clampedHeight, clampedDepth) / 1000
         return Coordinator(
             modelSize:       sizeMeters,
             resetHandler:    onResetRequest,
