@@ -36,6 +36,7 @@ struct ArScreen: View {
                 ARViewContainer(
                     filePath: filePath,
                     preloadedModel: preloadedModel,
+                    placement: placement,
                     modelWidthMm: modelWidthMm,
                     modelHeightMm: modelHeightMm,
                     modelDepthMm: modelDepthMm,

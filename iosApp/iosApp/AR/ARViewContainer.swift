@@ -10,12 +10,14 @@ import SwiftUI
 import RealityKit
 import ARKit
 import Combine
+import ARApp
 
 typealias M3 = SIMD3<Float>
 
 struct ARViewContainer: UIViewRepresentable {
     let filePath: String
     let preloadedModel: ModelEntity?
+    let placement: ArPlacement
 
     let modelWidthMm:  Float
     let modelHeightMm: Float
@@ -52,6 +54,7 @@ struct ARViewContainer: UIViewRepresentable {
             showGuidance:    showGuidance,
             singleMode:      isSingleMode,
             filePath:        filePath,
+            placement:       placement,
             preloadedModel:  preloadedModel
         )
     }
@@ -59,6 +62,19 @@ struct ARViewContainer: UIViewRepresentable {
     // MARK: - Coordinator
 
     class Coordinator: NSObject, ARSessionDelegate, UIGestureRecognizerDelegate {
+        private enum PlacementPolicy {
+            case floor
+            case ceiling
+            case anyHorizontal
+            case anyVertical
+            case anySurface
+        }
+
+        private struct PlacementHit {
+            let result: ARRaycastResult
+            let alignment: ARRaycastQuery.TargetAlignment
+        }
+
         // Core
         private weak var arView: ARView?
         private var modelAnchor: AnchorEntity?
@@ -90,17 +106,34 @@ struct ARViewContainer: UIViewRepresentable {
 
         // Inputs
         let filePath: String
+        let placement: ArPlacement
         private var preloadedModel: ModelEntity?
 
         // Safe placement distance range (meters)
         private let minPlaceDistance: Float = 0.35
         private let maxPlaceDistance: Float = 4.0
 
+        private var placementPolicy: PlacementPolicy {
+            switch placement.name {
+            case "FLOOR":
+                return .floor
+            case "CEILING":
+                return .ceiling
+            case "ANY_HORIZONTAL":
+                return .anyHorizontal
+            case "ANY_VERTICAL":
+                return .anyVertical
+            default:
+                return .anySurface
+            }
+        }
+
         init(modelSize: M3,
              resetHandler: @escaping () -> Void,
              showGuidance: Bool,
              singleMode: Bool,
              filePath: String,
+             placement: ArPlacement,
              preloadedModel: ModelEntity?)
         {
             self.modelSize       = modelSize
@@ -108,6 +141,7 @@ struct ARViewContainer: UIViewRepresentable {
             self.showGuidance    = showGuidance
             self.isSingleMode    = singleMode
             self.filePath        = filePath
+            self.placement       = placement
             self.preloadedModel  = preloadedModel
             super.init()
         }
@@ -121,7 +155,7 @@ struct ARViewContainer: UIViewRepresentable {
             // Basic configuration
             let config = ARWorldTrackingConfiguration()
             config.worldAlignment = .gravity
-            config.planeDetection = [.horizontal]
+            config.planeDetection = requiredPlaneDetection()
 
             // Automatic lighting from camera:
             // - brightness/temperature estimation (Light Estimation)
@@ -238,30 +272,21 @@ struct ARViewContainer: UIViewRepresentable {
 
             let pt = gesture.location(in: arView)
 
-            // 1) Strict real geometry hit test (best quality)
-            if let hit = raycast(at: pt, in: arView,
-                                 allowing: .existingPlaneGeometry,
-                                 alignment: .horizontal)
-            {
-                placeOrMoveModel(using: hit, in: arView)
+            guard let hit = findPlacementHit(at: pt, in: arView) else {
+                updateGuidanceLabel(text: "Surface not found. Try different angle/lighting")
                 return
             }
 
-            // 2) Fallback: estimated plane
-            if let hit = raycast(at: pt, in: arView,
-                                 allowing: .estimatedPlane,
-                                 alignment: .horizontal)
-            {
-                placeOrMoveModel(using: hit, in: arView)
-                return
-            }
-
-            updateGuidanceLabel(text: "Surface not found. Try different angle/lighting")
+            placeOrMoveModel(using: hit.result, alignment: hit.alignment, in: arView)
         }
 
-        private func placeOrMoveModel(using result: ARRaycastResult, in arView: ARView) {
+        private func placeOrMoveModel(
+            using result: ARRaycastResult,
+            alignment: ARRaycastQuery.TargetAlignment,
+            in arView: ARView,
+        ) {
             // Store plane alignment for subsequent drag
-            placementAlignment = .horizontal
+            placementAlignment = alignment
 
             // Clamp placement distance (safety/readability)
             let clamped = clampedTransform(for: result, in: arView)
@@ -271,7 +296,10 @@ struct ARViewContainer: UIViewRepresentable {
                 // Reuse existing anchor → smooth move
                 anchor.move(to: Transform(matrix: clamped), relativeTo: nil, duration: 0.06, timingFunction: .easeInOut)
                 
-                if let e = self.modelEntity, let v = self.arView {
+                if let e = self.modelEntity,
+                   let v = self.arView,
+                   self.placementAlignment == .horizontal
+                {
                     self.groundRaycastSnap(e, in: v, alignment: self.placementAlignment)
                 }
                 
@@ -484,19 +512,105 @@ struct ARViewContainer: UIViewRepresentable {
 
         // MARK: Raycast helpers
 
-        private func raycast(at pt: CGPoint,
-                             in arView: ARView,
-                             allowing: ARRaycastQuery.Target,
-                             alignment: ARRaycastQuery.TargetAlignment) -> ARRaycastResult?
-        {
-            // Pick the lowest surface. Prefer classified floor hits when available.
-            guard let query = arView.makeRaycastQuery(from: pt, allowing: allowing, alignment: alignment) else { return nil }
-            let results = arView.session.raycast(query)
-            guard !results.isEmpty else { return nil }
+        private func findPlacementHit(at point: CGPoint, in arView: ARView) -> PlacementHit? {
+            let alignments = allowedAlignments()
+            let targets: [ARRaycastQuery.Target] = [.existingPlaneGeometry, .estimatedPlane]
 
-            let floorResults = results.filter { ($0.anchor as? ARPlaneAnchor)?.classification == .floor }
-            let candidates = floorResults.isEmpty ? results : floorResults
-            return candidates.min(by: { $0.worldTransform.columns.3.y < $1.worldTransform.columns.3.y }) ?? candidates.first
+            for target in targets {
+                for alignment in alignments {
+                    if let hit = raycast(
+                        at: point,
+                        in: arView,
+                        allowing: target,
+                        alignment: alignment
+                    ) {
+                        return PlacementHit(result: hit, alignment: alignment)
+                    }
+                }
+            }
+            return nil
+        }
+
+        private func allowedAlignments() -> [ARRaycastQuery.TargetAlignment] {
+            switch placementPolicy {
+            case .floor, .ceiling, .anyHorizontal:
+                return [.horizontal]
+            case .anyVertical:
+                return [.vertical]
+            case .anySurface:
+                return [.horizontal, .vertical]
+            }
+        }
+
+        private func requiredPlaneDetection() -> ARWorldTrackingConfiguration.PlaneDetection {
+            switch placementPolicy {
+            case .anyVertical, .anySurface:
+                return [.horizontal, .vertical]
+            case .floor, .ceiling, .anyHorizontal:
+                return [.horizontal]
+            }
+        }
+
+        private func raycast(
+            at point: CGPoint,
+            in arView: ARView,
+            allowing target: ARRaycastQuery.Target,
+            alignment: ARRaycastQuery.TargetAlignment,
+        ) -> ARRaycastResult? {
+            guard let query = arView.makeRaycastQuery(from: point, allowing: target, alignment: alignment) else {
+                return nil
+            }
+            let results = arView.session.raycast(query)
+            return results.first { resultMatchesPlacement($0, alignment: alignment, in: arView) }
+        }
+
+        private func resultMatchesPlacement(
+            _ result: ARRaycastResult,
+            alignment: ARRaycastQuery.TargetAlignment,
+            in arView: ARView,
+        ) -> Bool {
+            switch placementPolicy {
+            case .anySurface:
+                return true
+            case .anyHorizontal:
+                return alignment == .horizontal
+            case .anyVertical:
+                return alignment == .vertical
+            case .floor:
+                return alignment == .horizontal && isFloorResult(result, in: arView)
+            case .ceiling:
+                return alignment == .horizontal && isCeilingResult(result, in: arView)
+            }
+        }
+
+        private func isFloorResult(_ result: ARRaycastResult, in arView: ARView) -> Bool {
+            if let planeAnchor = result.anchor as? ARPlaneAnchor {
+                if planeAnchor.classification == .floor {
+                    return true
+                }
+                if planeAnchor.classification == .ceiling {
+                    return false
+                }
+            }
+
+            let hitY = result.worldTransform.columns.3.y
+            let cameraY = arView.session.currentFrame?.camera.transform.columns.3.y ?? hitY
+            return hitY <= (cameraY + 0.15)
+        }
+
+        private func isCeilingResult(_ result: ARRaycastResult, in arView: ARView) -> Bool {
+            if let planeAnchor = result.anchor as? ARPlaneAnchor {
+                if planeAnchor.classification == .ceiling {
+                    return true
+                }
+                if planeAnchor.classification == .floor {
+                    return false
+                }
+            }
+
+            let hitY = result.worldTransform.columns.3.y
+            let cameraY = arView.session.currentFrame?.camera.transform.columns.3.y ?? hitY
+            return hitY > (cameraY + 0.15)
         }
 
         private func clampedTransform(for result: ARRaycastResult, in arView: ARView) -> simd_float4x4 {
@@ -603,7 +717,14 @@ struct ARViewContainer: UIViewRepresentable {
             let overlay = ARCoachingOverlayView()
             overlay.session = arView.session
             overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            overlay.goal = .horizontalPlane
+            switch placementPolicy {
+            case .anyVertical:
+                overlay.goal = .verticalPlane
+            case .anySurface:
+                overlay.goal = .anyPlane
+            case .floor, .ceiling, .anyHorizontal:
+                overlay.goal = .horizontalPlane
+            }
             overlay.activatesAutomatically = true
             overlay.frame = arView.bounds
             arView.addSubview(overlay)
