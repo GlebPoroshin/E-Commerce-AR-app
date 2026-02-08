@@ -27,6 +27,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 
@@ -41,4 +44,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
