@@ -10,7 +10,11 @@ struct iOSApp: App {
     )
 
     init() {
-        KoinInitKt.doInitKoin()
+        #if DEBUG
+        KoinInitKt.doInitKoin(useMockFallback: true)
+        #else
+        KoinInitKt.doInitKoin(useMockFallback: false)
+        #endif
     }
 
     var body: some Scene {

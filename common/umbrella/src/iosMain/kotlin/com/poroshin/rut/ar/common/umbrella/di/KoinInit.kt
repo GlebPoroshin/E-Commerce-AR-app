@@ -1,6 +1,7 @@
 package com.poroshin.rut.ar.common.umbrella.di
 
 import com.poroshin.rut.ar.common.cart.domain.usecase.RunLegacyModelVersionsMigrationUseCase
+import com.poroshin.rut.ar.common.core.BackendConfig
 import com.poroshin.rut.ar.common.pdp.data.pdpDataIOSModule
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
@@ -15,7 +16,8 @@ fun initKoinIos(additionalModules: List<Module> = emptyList()) {
     }
 }
 
-fun doInitKoin() {
+fun doInitKoin(useMockFallback: Boolean) {
+    BackendConfig.setUseMockFallback(useMockFallback)
     initKoinIos(listOf(pdpDataIOSModule))
     runBlocking {
         runCatching {
@@ -24,4 +26,8 @@ fun doInitKoin() {
             println("Legacy model versions migration failed: ${it.message}")
         }
     }
+}
+
+fun doInitKoin() {
+    doInitKoin(useMockFallback = false)
 }
