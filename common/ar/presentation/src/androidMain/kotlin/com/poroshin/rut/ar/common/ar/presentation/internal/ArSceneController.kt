@@ -15,6 +15,7 @@ class ArSceneController : ViewModel() {
         data object InvalidDimensions : SceneError()
         data object Collision : SceneError()
         data object PlaneNotAllowed : SceneError()
+        data object PlacementLimitReached : SceneError()
         data object ArNotAvailable : SceneError()
     }
 

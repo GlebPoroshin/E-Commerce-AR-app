@@ -357,5 +357,6 @@ private fun SceneError.asMessage(): String = when (this) {
     SceneError.InvalidDimensions -> "Некорректные размеры модели. Проверьте width/height/depth и попробуйте снова."
     SceneError.Collision -> "Модели не должны пересекаться. Выберите другое место."
     SceneError.PlaneNotAllowed -> "Эта плоскость не подходит для размещения выбранного объекта."
+    SceneError.PlacementLimitReached -> "Достигнут лимит объектов в сцене. Очистите сцену или включите режим одной модели."
     SceneError.ArNotAvailable -> "ARCore недоступен на устройстве. Попробуйте обновить сервисы Google Play."
 }

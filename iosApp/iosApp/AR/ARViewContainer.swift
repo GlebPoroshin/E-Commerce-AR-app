@@ -115,6 +115,10 @@ struct ARViewContainer: UIViewRepresentable {
         private let maxPlaceDistance: Float = 4.0
         private let minScale: Float = 0.01
         private let maxScale: Float = 100.0
+        private let maxPlacedEntities: Int = 8
+        private var sceneStartedAtMs: Double = 0
+        private var firstPlacementAtMs: Double?
+        private var placementRetries: Int = 0
 
         private var placementPolicy: PlacementPolicy {
             switch placement.name {
@@ -162,6 +166,9 @@ struct ARViewContainer: UIViewRepresentable {
         func setup(on arView: ARView) {
             self.arView = arView
             arView.session.delegate = self
+            sceneStartedAtMs = Date().timeIntervalSince1970 * 1000.0
+            firstPlacementAtMs = nil
+            placementRetries = 0
 
             // Basic configuration
             let config = ARWorldTrackingConfiguration()
@@ -294,6 +301,7 @@ struct ARViewContainer: UIViewRepresentable {
 
             guard let hit = findPlacementHit(at: pt, in: arView) else {
                 updateGuidanceLabel(text: "Surface not found. Try different angle/lighting")
+                registerPlacementRetry(event: .placementrejectedsurface, details: "reason=no_plane_match")
                 return
             }
 
@@ -305,6 +313,15 @@ struct ARViewContainer: UIViewRepresentable {
             alignment: ARRaycastQuery.TargetAlignment,
             in arView: ARView,
         ) {
+            if !isSingleMode && placedEntities.count >= maxPlacedEntities {
+                updateGuidanceLabel(text: "Scene limit reached. Clear scene or switch to single mode")
+                logTelemetry(
+                    event: .placementrejectedsurface,
+                    details: "reason=placement_limit active=\(placedEntities.count) \(performanceSnapshotDetails())"
+                )
+                return
+            }
+
             // Store plane alignment for subsequent drag
             placementAlignment = alignment
 
@@ -331,6 +348,10 @@ struct ARViewContainer: UIViewRepresentable {
                     snapEntityToPlane(entity, relativeTo: anchor)
                 }
                 updateGuidanceLabel(text: "Long press + drag for precise adjustment")
+                logTelemetry(
+                    event: .placementsuccess,
+                    details: "reason=move active=\(placedEntities.count) \(performanceSnapshotDetails())"
+                )
                 return
             }
 
@@ -389,6 +410,10 @@ struct ARViewContainer: UIViewRepresentable {
                         if self.hasIntersectionWithPlacedEntities(entity) {
                             anchor.transform = previousTransform
                             self.updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                            self.registerPlacementRetry(
+                                event: .placementrejectedcollision,
+                                details: "reason=drag_collision"
+                            )
                         } else {
                             self.updateGuidanceLabel(text: "Long press + drag for precise adjustment")
                         }
@@ -405,6 +430,10 @@ struct ARViewContainer: UIViewRepresentable {
                     if hasIntersectionWithPlacedEntities(entity) {
                         anchor.transform = previousTransform
                         updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                        registerPlacementRetry(
+                            event: .placementrejectedcollision,
+                            details: "reason=drag_collision"
+                        )
                     } else {
                         updateGuidanceLabel(text: "Long press + drag for precise adjustment")
                     }
@@ -481,6 +510,10 @@ struct ARViewContainer: UIViewRepresentable {
 
             if hasIntersectionWithPlacedEntities(entity) {
                 updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                registerPlacementRetry(
+                    event: .placementrejectedcollision,
+                    details: "reason=place_collision"
+                )
                 removeAnchor(anchor)
                 placedAnchors.removeAll { $0 === anchor }
                 if modelAnchor === anchor {
@@ -492,6 +525,13 @@ struct ARViewContainer: UIViewRepresentable {
 
             self.modelEntity = entity
             placedEntities.append(entity)
+            if firstPlacementAtMs == nil {
+                firstPlacementAtMs = Date().timeIntervalSince1970 * 1000.0
+            }
+            logTelemetry(
+                event: .placementsuccess,
+                details: "reason=place active=\(placedEntities.count) \(performanceSnapshotDetails())"
+            )
 
             // Shadow light is configured in setup and updated from light estimate.
         }
@@ -741,7 +781,14 @@ struct ARViewContainer: UIViewRepresentable {
         }
 
         private func applyTrackingStatus(_ status: ArTrackingStatus) {
+            let previous = trackingStatus
             trackingStatus = status
+            if status == .lost {
+                logTelemetry(event: .trackinglost, details: "status=lost \(performanceSnapshotDetails())")
+            }
+            if previous == .lost && status == .tracking {
+                logTelemetry(event: .relocalizationsuccess, details: "status=tracking \(performanceSnapshotDetails())")
+            }
             switch status {
             case .tracking:
                 if hasValidModelDimensions {
@@ -760,6 +807,28 @@ struct ARViewContainer: UIViewRepresentable {
             let nextStatus = mapTrackingStatus(camera.trackingState)
             guard nextStatus != trackingStatus else { return }
             applyTrackingStatus(nextStatus)
+        }
+
+        private func registerPlacementRetry(event: ArTelemetryEvent, details: String) {
+            placementRetries += 1
+            logTelemetry(
+                event: event,
+                details: "\(details) retries=\(placementRetries) \(performanceSnapshotDetails())"
+            )
+        }
+
+        private func performanceSnapshotDetails() -> String {
+            let timeToFirst: String
+            if let firstPlacementAtMs {
+                timeToFirst = String(Int(firstPlacementAtMs - sceneStartedAtMs))
+            } else {
+                timeToFirst = "-1"
+            }
+            return "timeToFirstMs=\(timeToFirst) retries=\(placementRetries) active=\(placedEntities.count)"
+        }
+
+        private func logTelemetry(event: ArTelemetryEvent, details: String) {
+            print("ARTelemetry event=\(event.name) \(details)")
         }
 
         // MARK: Placement bookkeeping

@@ -3,6 +3,7 @@ package com.poroshin.rut.ar.common.ar.presentation.internal
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -36,6 +37,7 @@ import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
 import com.poroshin.rut.ar.common.ar.domain.ArPlacementPolicy
 import com.poroshin.rut.ar.common.ar.domain.ArPlaneType
 import com.poroshin.rut.ar.common.ar.domain.ArScaleCalculator
+import com.poroshin.rut.ar.common.ar.domain.ArTelemetryEvent
 import com.poroshin.rut.ar.common.ar.domain.ArTrackingStatus
 import com.poroshin.rut.ar.common.ar.domain.ArValidationResult
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
@@ -55,6 +57,10 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     private var draggingNode: TransformableNode? = null
     private var singleMode: Boolean = true
     private var modelScale: Vector3 = Vector3.one()
+    private var sceneStartedAtMs: Long = 0L
+    private var firstPlacementAtMs: Long? = null
+    private var placementRetries: Int = 0
+    private var previousTrackingStatus: ArTrackingStatus? = null
 
     private val placedNodes = mutableListOf<TransformableNode>()
 
@@ -87,6 +93,11 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         if (!validateModelDimensions()) {
             return
         }
+
+        sceneStartedAtMs = SystemClock.elapsedRealtime()
+        firstPlacementAtMs = null
+        placementRetries = 0
+        previousTrackingStatus = null
 
         singleMode = controller.singleMode.value
 
@@ -121,7 +132,18 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     override fun onUpdate(frameTime: FrameTime) {
         val frame = arSceneView.arFrame ?: return
-        controller.reportTracking(resolveTrackingStatus(frame))
+        val currentStatus = resolveTrackingStatus(frame)
+        val previousStatus = previousTrackingStatus
+        if (currentStatus != previousStatus) {
+            if (currentStatus == ArTrackingStatus.Lost) {
+                logTelemetry(ArTelemetryEvent.TrackingLost, "status=lost")
+            }
+            if (previousStatus == ArTrackingStatus.Lost && currentStatus == ArTrackingStatus.Tracking) {
+                logTelemetry(ArTelemetryEvent.RelocalizationSuccess, "status=tracking")
+            }
+            previousTrackingStatus = currentStatus
+        }
+        controller.reportTracking(currentStatus)
     }
 
     private fun resolveTrackingStatus(frame: Frame): ArTrackingStatus {
@@ -204,6 +226,10 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         setOnTapArPlaneListener { hit, plane, _ ->
             if (!planeMatchesPlacement(plane)) {
                 controller.reportError(ArSceneController.SceneError.PlaneNotAllowed)
+                registerPlacementRetry(
+                    event = ArTelemetryEvent.PlacementRejectedSurface,
+                    details = "reason=plane_not_allowed",
+                )
                 return@setOnTapArPlaneListener
             }
             placeModel(hit)
@@ -231,6 +257,10 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             if (hasIntersection(node, skip = node)) {
                 parentNode.worldPosition = previousPosition
                 controller.reportError(ArSceneController.SceneError.Collision)
+                registerPlacementRetry(
+                    event = ArTelemetryEvent.PlacementRejectedCollision,
+                    details = "reason=drag_collision",
+                )
             } else {
                 controller.reportError(null)
                 Log.d(TAG, "Model moved to ${targetPose.translation.contentToString()}")
@@ -279,6 +309,14 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             placedNodes.toList().forEach { removeNode(it) }
             placedNodes.clear()
         }
+        if (!singleMode && placedNodes.size >= MAX_ACTIVE_MODELS) {
+            controller.reportError(ArSceneController.SceneError.PlacementLimitReached)
+            logTelemetry(
+                event = ArTelemetryEvent.PlacementRejectedSurface,
+                details = "reason=placement_limit active=${placedNodes.size}",
+            )
+            return
+        }
 
         val anchor = createClampedAnchor(hit)
         val anchorNode = AnchorNode(anchor).apply {
@@ -296,12 +334,23 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         if (hasIntersection(node, skip = null)) {
             anchorNode.setParent(null)
             controller.reportError(ArSceneController.SceneError.Collision)
+            registerPlacementRetry(
+                event = ArTelemetryEvent.PlacementRejectedCollision,
+                details = "reason=place_collision",
+            )
             return
         }
 
         placedNodes.add(node)
         controller.reportError(null)
         controller.reportPlacedCount(placedNodes.size)
+        if (firstPlacementAtMs == null) {
+            firstPlacementAtMs = SystemClock.elapsedRealtime()
+        }
+        logTelemetry(
+            event = ArTelemetryEvent.PlacementSuccess,
+            details = "active=${placedNodes.size} ${performanceSnapshotDetails()}",
+        )
         node.select()
         Log.d(TAG, "Model placed at ${anchorPoseToString(anchor)}")
     }
@@ -528,6 +577,26 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     private fun anchorPoseToString(anchor: Anchor): String =
         anchor.pose.translation.contentToString()
 
+    private fun registerPlacementRetry(event: ArTelemetryEvent, details: String) {
+        placementRetries += 1
+        logTelemetry(
+            event = event,
+            details = "$details retries=$placementRetries ${performanceSnapshotDetails()}",
+        )
+    }
+
+    private fun performanceSnapshotDetails(): String {
+        val timeToFirst = firstPlacementAtMs?.let { it - sceneStartedAtMs }
+        return "timeToFirstMs=${timeToFirst ?: -1} retries=$placementRetries active=${placedNodes.size}"
+    }
+
+    private fun logTelemetry(event: ArTelemetryEvent, details: String) {
+        Log.i(
+            TAG,
+            "telemetry event=${event.name} $details",
+        )
+    }
+
     private data class Aabb(
         val center: Vector3,
         val halfExtents: Vector3,
@@ -551,6 +620,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     companion object {
         private const val TAG = "CustomArFragment"
         private const val EPSILON = 1e-5f
+        private const val MAX_ACTIVE_MODELS = 8
 
         fun newInstance(params: ArObjectParams): CustomArFragment {
             return CustomArFragment().apply {
