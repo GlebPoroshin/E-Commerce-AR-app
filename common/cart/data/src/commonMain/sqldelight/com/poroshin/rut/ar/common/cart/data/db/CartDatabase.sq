@@ -1,0 +1,86 @@
+CREATE TABLE cart_items (
+    sku INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    price_text TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    updated_at_epoch_ms INTEGER NOT NULL
+);
+
+CREATE TABLE model_versions (
+    sku INTEGER NOT NULL PRIMARY KEY,
+    version INTEGER NOT NULL,
+    updated_at_epoch_ms INTEGER NOT NULL
+);
+
+CREATE TABLE meta (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+selectCartItems:
+SELECT *
+FROM cart_items
+ORDER BY updated_at_epoch_ms DESC;
+
+selectCartItemCount:
+SELECT COUNT(*)
+FROM cart_items;
+
+selectCartItemBySku:
+SELECT *
+FROM cart_items
+WHERE sku = ?;
+
+upsertIncrementCartItem:
+INSERT INTO cart_items(
+    sku,
+    name,
+    price_text,
+    image_url,
+    quantity,
+    updated_at_epoch_ms
+)
+VALUES (?, ?, ?, ?, 1, ?)
+;
+
+incrementCartItem:
+UPDATE cart_items
+SET name = ?,
+    price_text = ?,
+    image_url = ?,
+    quantity = quantity + 1,
+    updated_at_epoch_ms = ?
+WHERE sku = ?;
+
+updateCartItemQuantity:
+UPDATE cart_items
+SET quantity = ?,
+    updated_at_epoch_ms = ?
+WHERE sku = ?;
+
+deleteCartItem:
+DELETE FROM cart_items
+WHERE sku = ?;
+
+selectModelVersion:
+SELECT version
+FROM model_versions
+WHERE sku = ?;
+
+upsertModelVersion:
+INSERT OR REPLACE INTO model_versions(sku, version, updated_at_epoch_ms)
+VALUES (?, ?, ?);
+
+deleteModelVersion:
+DELETE FROM model_versions
+WHERE sku = ?;
+
+selectMetaValue:
+SELECT value
+FROM meta
+WHERE key = ?;
+
+upsertMetaValue:
+INSERT OR REPLACE INTO meta(key, value)
+VALUES (?, ?);
