@@ -18,6 +18,10 @@ fun initKoinIos(additionalModules: List<Module> = emptyList()) {
 fun doInitKoin() {
     initKoinIos(listOf(pdpDataIOSModule))
     runBlocking {
-        koinApplication?.koin?.get<RunLegacyModelVersionsMigrationUseCase>()?.invoke()
+        runCatching {
+            koinApplication?.koin?.get<RunLegacyModelVersionsMigrationUseCase>()?.invoke()
+        }.onFailure {
+            println("Legacy model versions migration failed: ${it.message}")
+        }
     }
 }

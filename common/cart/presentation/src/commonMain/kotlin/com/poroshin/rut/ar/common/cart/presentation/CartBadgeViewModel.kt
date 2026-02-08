@@ -7,6 +7,7 @@ import com.poroshin.rut.ar.common.cart.presentation.model.CartBadgeEvent
 import com.poroshin.rut.ar.common.cart.presentation.model.CartBadgeState
 import com.poroshin.rut.ar.common.mvi.SharedViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -33,9 +34,11 @@ class CartBadgeViewModel(
         if (observeJob != null) return
 
         observeJob = viewModelScope.launch {
-            observeCartBadgeCountUseCase().collect { count ->
+            observeCartBadgeCountUseCase()
+                .catch { emit(0) }
+                .collect { count ->
                 updateState { CartBadgeState.fromCount(count) }
-            }
+                }
         }
     }
 }
