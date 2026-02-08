@@ -54,6 +54,7 @@ class MainActivity : FragmentActivity(), CartFragment.Host {
 
     private val selectedTab = MutableStateFlow(AppTab.Main)
     private val bottomBarVisible = MutableStateFlow(true)
+    private var isNavigationInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,11 +74,7 @@ class MainActivity : FragmentActivity(), CartFragment.Host {
                         updateBottomBarVisibility()
                     },
                     onContainersReady = {
-                        ensureCartRoot()
-                        if (savedInstanceState == null) {
-                            navigator.newRootScreen(router, NavigationTree.Plp)
-                        }
-                        updateBottomBarVisibility()
+                        initializeNavigationIfNeeded(savedInstanceState)
                     },
                 )
             }
@@ -116,6 +113,19 @@ class MainActivity : FragmentActivity(), CartFragment.Host {
                 replace(cartContainerId, CartFragment.newInstance(), "cart.root")
             }
         }
+    }
+
+    private fun initializeNavigationIfNeeded(savedInstanceState: Bundle?) {
+        if (isNavigationInitialized) return
+        if (findViewById<View?>(mainContainerId) == null) return
+        if (findViewById<View?>(cartContainerId) == null) return
+
+        ensureCartRoot()
+        if (savedInstanceState == null && supportFragmentManager.findFragmentById(mainContainerId) == null) {
+            navigator.newRootScreen(router, NavigationTree.Plp)
+        }
+        updateBottomBarVisibility()
+        isNavigationInitialized = true
     }
 
     private fun registerFragmentCallbacks() {
@@ -220,11 +230,15 @@ private fun MainScaffold(
                         )
                     }
                     addView(cartContainer)
-
-                    onContainersReady()
                 }
             },
             update = { root ->
+                if (root.isAttachedToWindow) {
+                    onContainersReady()
+                } else {
+                    root.post { onContainersReady() }
+                }
+
                 val mainContainer = root.findViewById<View>(mainContainerId)
                 val cartContainer = root.findViewById<View>(cartContainerId)
 
