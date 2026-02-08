@@ -28,10 +28,17 @@ import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import com.poroshin.rut.ar.common.ar.domain.ArCollisionEvaluator
+import com.poroshin.rut.ar.common.ar.domain.ArDimensionValidator
+import com.poroshin.rut.ar.common.ar.domain.ArModelDimensionsMeters
+import com.poroshin.rut.ar.common.ar.domain.ArModelDimensionsMm
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
+import com.poroshin.rut.ar.common.ar.domain.ArPlacementPolicy
+import com.poroshin.rut.ar.common.ar.domain.ArPlaneType
+import com.poroshin.rut.ar.common.ar.domain.ArScaleCalculator
+import com.poroshin.rut.ar.common.ar.domain.ArValidationResult
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
 import com.poroshin.rut.ar.common.ar.presentation.toBundle
-import com.poroshin.rut.ar.common.pdp.domain.ArPlacement
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -75,6 +82,10 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         super.onViewCreated(view, savedInstanceState)
         instructionsController.setEnabled(false)
         instructionsController.setVisible(false)
+
+        if (!validateModelDimensions()) {
+            return
+        }
 
         singleMode = controller.singleMode.value
 
@@ -226,6 +237,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     }
 
     private fun placeModel(hit: HitResult) {
+        if (!validateModelDimensions()) return
         val model = modelRenderable ?: run {
             controller.reportError(ArSceneController.SceneError.ModelLoadingFailed)
             return
@@ -270,7 +282,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             if (other === node || other === skip) continue
             val otherShape = other.collisionShape as? Box ?: continue
             val otherAabb = computeWorldAabb(other, otherShape) ?: continue
-            if (intersects(targetAabb, otherAabb)) {
+            if (ArCollisionEvaluator.intersects(targetAabb.toSharedAabb(), otherAabb.toSharedAabb())) {
                 return true
             }
         }
@@ -323,16 +335,6 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         return Aabb(center = worldCenter, halfExtents = halfExtents)
     }
 
-    private fun intersects(a: Aabb, b: Aabb): Boolean {
-        val dx = abs(a.center.x - b.center.x)
-        val dy = abs(a.center.y - b.center.y)
-        val dz = abs(a.center.z - b.center.z)
-
-        return dx <= (a.halfExtents.x + b.halfExtents.x) &&
-            dy <= (a.halfExtents.y + b.halfExtents.y) &&
-            dz <= (a.halfExtents.z + b.halfExtents.z)
-    }
-
     private fun clearAllNodes() {
         placedNodes.forEach { node ->
             val parent = node.parent as? AnchorNode
@@ -376,7 +378,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             return hit.createAnchor()
         }
 
-        val clampedDistance = distance.coerceIn(MIN_PLACE_DISTANCE_METERS, MAX_PLACE_DISTANCE_METERS)
+        val clampedDistance = params.distancePolicy.clamp(distance)
         if (abs(clampedDistance - distance) <= 1e-3f) {
             return hit.createAnchor()
         }
@@ -398,6 +400,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     private fun loadModel(force: Boolean) {
         if (!force && modelRenderable != null) return
+        if (!validateModelDimensions()) return
         controller.reportModelLoading(true)
         val file = File(params.filePath)
         if (!file.exists()) {
@@ -431,27 +434,52 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             modelScale = Vector3.one()
             return
         }
-        val widthMeters = params.widthMm.coerceAtLeast(1f) / 1000f
-        val heightMeters = params.heightMm.coerceAtLeast(1f) / 1000f
-        val depthMeters = params.depthMm.coerceAtLeast(1f) / 1000f
 
-        val sx = widthMeters / shape.size.x.coerceAtLeast(EPSILON)
-        val sy = heightMeters / shape.size.y.coerceAtLeast(EPSILON)
-        val sz = depthMeters / shape.size.z.coerceAtLeast(EPSILON)
-        val uniformScale = ((sx + sy + sz) / 3f).coerceIn(0.01f, 100f)
+        val targetSize = ArScaleCalculator.toMeters(modelDimensionsMm())
+        val sourceSize = ArModelDimensionsMeters(
+            width = shape.size.x,
+            height = shape.size.y,
+            depth = shape.size.z,
+        )
+        val uniformScale = ArScaleCalculator.computeUniformScale(
+            source = sourceSize,
+            target = targetSize,
+            policy = params.scalePolicy,
+        )
         modelScale = Vector3(uniformScale, uniformScale, uniformScale)
     }
 
     private fun planeMatchesPlacement(plane: Plane): Boolean {
-        return when (params.placement) {
-            ArPlacement.ANY_SURFACE -> plane.type == Plane.Type.HORIZONTAL_UPWARD_FACING ||
-                plane.type == Plane.Type.HORIZONTAL_DOWNWARD_FACING ||
-                plane.type == Plane.Type.VERTICAL
-            ArPlacement.ANY_HORIZONTAL -> plane.type == Plane.Type.HORIZONTAL_UPWARD_FACING ||
-                plane.type == Plane.Type.HORIZONTAL_DOWNWARD_FACING
-            ArPlacement.ANY_VERTICAL -> plane.type == Plane.Type.VERTICAL
-            ArPlacement.FLOOR -> plane.type == Plane.Type.HORIZONTAL_UPWARD_FACING
-            ArPlacement.CEILING -> plane.type == Plane.Type.HORIZONTAL_DOWNWARD_FACING
+        return ArPlacementPolicy.supportsPlane(
+            placement = params.placementPolicy,
+            planeType = plane.toArPlaneType(),
+        )
+    }
+
+    private fun validateModelDimensions(): Boolean {
+        return when (ArDimensionValidator.validate(modelDimensionsMm())) {
+            ArValidationResult.Valid -> true
+            is ArValidationResult.Invalid -> {
+                controller.reportModelLoading(false)
+                controller.reportError(ArSceneController.SceneError.InvalidDimensions)
+                false
+            }
+        }
+    }
+
+    private fun modelDimensionsMm(): ArModelDimensionsMm {
+        return ArModelDimensionsMm(
+            widthMm = params.widthMm,
+            heightMm = params.heightMm,
+            depthMm = params.depthMm,
+        )
+    }
+
+    private fun Plane.toArPlaneType(): ArPlaneType {
+        return when (type) {
+            Plane.Type.HORIZONTAL_UPWARD_FACING -> ArPlaneType.HorizontalUpward
+            Plane.Type.HORIZONTAL_DOWNWARD_FACING -> ArPlaneType.HorizontalDownward
+            Plane.Type.VERTICAL -> ArPlaneType.Vertical
         }
     }
 
@@ -461,13 +489,26 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     private data class Aabb(
         val center: Vector3,
         val halfExtents: Vector3,
-    )
+    ) {
+        fun toSharedAabb(): com.poroshin.rut.ar.common.ar.domain.ArAabb {
+            return com.poroshin.rut.ar.common.ar.domain.ArAabb(
+                center = com.poroshin.rut.ar.common.ar.domain.ArVector3(
+                    x = center.x,
+                    y = center.y,
+                    z = center.z,
+                ),
+                halfExtents = com.poroshin.rut.ar.common.ar.domain.ArVector3(
+                    x = halfExtents.x,
+                    y = halfExtents.y,
+                    z = halfExtents.z,
+                ),
+            )
+        }
+    }
 
     companion object {
         private const val TAG = "CustomArFragment"
         private const val EPSILON = 1e-5f
-        private const val MIN_PLACE_DISTANCE_METERS = 0.35f
-        private const val MAX_PLACE_DISTANCE_METERS = 4.0f
 
         fun newInstance(params: ArObjectParams): CustomArFragment {
             return CustomArFragment().apply {

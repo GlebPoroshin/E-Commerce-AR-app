@@ -17,6 +17,7 @@ class ArSceneController : ViewModel() {
 
     sealed class SceneError {
         data object ModelLoadingFailed : SceneError()
+        data object InvalidDimensions : SceneError()
         data object Collision : SceneError()
         data object PlaneNotAllowed : SceneError()
         data object ArNotAvailable : SceneError()
