@@ -26,6 +26,8 @@ fun PdpScreen(
     state: PdpState,
     onModelLoadClick: (PdpState.Content) -> Unit,
     onDeleteModelClick: (PdpState.Content) -> Unit,
+    onIncreaseCartClick: (PdpState.Content) -> Unit,
+    onDecreaseCartClick: (PdpState.Content) -> Unit,
 ) {
     when (state) {
         is PdpState.Loading -> {
@@ -37,6 +39,8 @@ fun PdpScreen(
                 state = state,
                 onModelLoadClick = onModelLoadClick,
                 onDeleteModelClick = onDeleteModelClick,
+                onIncreaseCartClick = onIncreaseCartClick,
+                onDecreaseCartClick = onDecreaseCartClick,
             )
         }
     }
@@ -59,6 +63,8 @@ private fun PdpContent(
     state: PdpState.Content,
     onModelLoadClick: (PdpState.Content) -> Unit,
     onDeleteModelClick: (PdpState.Content) -> Unit,
+    onIncreaseCartClick: (PdpState.Content) -> Unit,
+    onDecreaseCartClick: (PdpState.Content) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -125,6 +131,36 @@ private fun PdpContent(
                 onClick = { onModelLoadClick(state) }
             ) {
                 Text(text = "Скачать модель")
+            }
+        }
+
+        if (state.cartQuantity > 0) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { onDecreaseCartClick(state) },
+                ) {
+                    Text("<")
+                }
+                Text(
+                    text = state.cartQuantity.toString(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { onIncreaseCartClick(state) },
+                ) {
+                    Text(">")
+                }
+            }
+        } else {
+            Button(onClick = { onIncreaseCartClick(state) }) {
+                Text("Добавить в корзину")
             }
         }
 

@@ -14,10 +14,12 @@ import androidx.lifecycle.lifecycleScope
 import com.github.terrakok.cicerone.Router
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
 import com.poroshin.rut.ar.common.ar.presentation.toBundle
+import com.poroshin.rut.ar.common.cart.domain.CartItemSnapshot
 import com.poroshin.rut.ar.common.core.NavigationTree
 import com.poroshin.rut.ar.common.core.Navigator
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpAction
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpEvent
+import com.poroshin.rut.ar.common.pdp.presentation.model.PdpState
 import com.poroshin.rut.ar.common.pdp.presentation.ui.PdpScreen
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -60,6 +62,16 @@ class PdpFragment : Fragment() {
                                 PdpEvent.OnDeleteModel(contentState.product.sku)
                             )
                         },
+                        onIncreaseCartClick = { contentState ->
+                            viewModel.onEvent(
+                                PdpEvent.OnIncreaseCart(contentState.toCartSnapshot())
+                            )
+                        },
+                        onDecreaseCartClick = { contentState ->
+                            viewModel.onEvent(
+                                PdpEvent.OnDecreaseCart(contentState.product.sku)
+                            )
+                        },
                     )
                 }
             }
@@ -78,6 +90,7 @@ class PdpFragment : Fragment() {
                             heightMm = action.height,
                             depthMm = action.depth,
                             placement = action.placement,
+                            cartItem = action.cartSnapshot,
                         )
                         navigator.navigateTo(
                             router = router,
@@ -96,4 +109,13 @@ class PdpFragment : Fragment() {
     companion object {
         fun newInstance(): PdpFragment = PdpFragment()
     }
+}
+
+private fun PdpState.Content.toCartSnapshot(): CartItemSnapshot {
+    return CartItemSnapshot(
+        sku = product.sku,
+        name = product.name,
+        priceText = product.price,
+        imageUrl = product.images.firstOrNull().orEmpty(),
+    )
 }

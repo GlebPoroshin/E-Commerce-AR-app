@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "com.poroshin.rut.ar.android"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }
@@ -38,15 +38,6 @@ android {
 
 dependencies {
     implementation(projects.common.umbrella)
-    implementation(projects.common.pdp.data)
-
-    implementation(projects.common.pdp.presentation)
-    implementation(projects.common.plp.presentation)
-    implementation(projects.common.ar.presentation)
-
-    implementation(projects.common.pdp.domain)
-    implementation(projects.common.plp.domain)
-    implementation(projects.common.ar.domain)
 
     implementation(libs.compose.ui)
     implementation(libs.compose.runtime)
@@ -60,7 +51,6 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.android)
     implementation(libs.androidx.fragment)
-    implementation(libs.cicerone)
 
     debugImplementation(libs.compose.ui.tooling)
 }

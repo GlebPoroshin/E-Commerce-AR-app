@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.github.terrakok.cicerone.Screen
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.FragmentScreen
+import com.poroshin.rut.ar.common.cart.presentation.CartFragment
 import com.poroshin.rut.ar.common.plp.presentation.PlpFragment
 import com.poroshin.rut.ar.common.pdp.presentation.PdpFragment
 import com.poroshin.rut.ar.common.ar.presentation.ARFragment
@@ -71,6 +72,7 @@ class NavigatorImpl : Navigator {
     private fun getFragmentScreen(key: NavigationTree, params: Bundle): Screen {
         return when (key) {
             NavigationTree.Plp -> FragmentScreen { PlpFragment.newInstance().apply { arguments = params } }
+            NavigationTree.Cart -> FragmentScreen { CartFragment.newInstance().apply { arguments = params } }
             NavigationTree.Pdp -> FragmentScreen { PdpFragment.newInstance().apply { arguments = params } }
             NavigationTree.Ar -> FragmentScreen { ARFragment.newInstance().apply { arguments = params } }
         }

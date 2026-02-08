@@ -5,11 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.view.Gravity
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AssistChip
@@ -23,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
@@ -32,16 +30,21 @@ import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commitNow
 import androidx.fragment.app.viewModels
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
+import com.poroshin.rut.ar.common.cart.presentation.CartQuantityViewModel
+import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityEvent
+import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityState
 import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController
 import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController.SceneError
 import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController.TrackingStatus
 import com.poroshin.rut.ar.common.ar.presentation.internal.CustomArFragment
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
+import kotlin.math.roundToInt
 
 class ARFragment : Fragment() {
 
     private val params: ArObjectParams? by lazy { arguments?.toArObjectParams() }
     private val sceneController: ArSceneController by viewModels()
+    private val cartQuantityViewModel by lazy { CartQuantityViewModel() }
 
     private val sceneTag = "ar.scene"
     private var sceneContainerId: Int = View.generateViewId()
@@ -49,6 +52,7 @@ class ARFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sceneContainerId = View.generateViewId()
+        cartQuantityViewModel.onEvent(CartQuantityEvent.SetSnapshot(params?.cartItem))
     }
 
     override fun onCreateView(
@@ -81,23 +85,65 @@ class ARFragment : Fragment() {
             }
         }
 
-        val overlay = ComposeView(requireContext()).apply {
+        val density = resources.displayMetrics.density
+        fun dp(dp: Int) = (dp * density).roundToInt()
+
+        val topOverlay = ComposeView(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                setMargins(dp(16), dp(12), dp(16), 0)
+            }
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 MaterialTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.Transparent,
-                    ) {
-                        ArOverlay(
-                            hasParams = params != null,
-                            controller = sceneController,
-                        )
-                    }
+                    TopControlsOverlay(
+                        hasParams = params != null,
+                        controller = sceneController,
+                    )
                 }
             }
         }
-        root.addView(overlay)
+        root.addView(topOverlay)
+
+        val bottomOverlay = ComposeView(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                setMargins(dp(16), 0, dp(16), dp(24))
+            }
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    BottomOverlay(
+                        hasParams = params != null,
+                        controller = sceneController,
+                        cartQuantityViewModel = cartQuantityViewModel,
+                    )
+                }
+            }
+        }
+        root.addView(bottomOverlay)
+
+        val centerOverlay = ComposeView(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                gravity = Gravity.CENTER
+            }
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    MissingParamsOverlay(hasParams = params != null)
+                }
+            }
+        }
+        root.addView(centerOverlay)
 
         return root
     }
@@ -108,46 +154,57 @@ class ARFragment : Fragment() {
 }
 
 @Composable
-private fun ArOverlay(
+private fun TopControlsOverlay(
     hasParams: Boolean,
     controller: ArSceneController,
 ) {
+    if (!hasParams) return
     val uiState by controller.uiState.collectAsState()
     val singleMode by controller.singleMode.collectAsState()
+    TopControls(
+        modifier = Modifier,
+        isSingleMode = singleMode,
+        uiState = uiState,
+        onToggleMode = { controller.setSingleMode(!singleMode) },
+        onClear = controller::requestClearAll,
+    )
+}
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (!hasParams) {
-            MissingParamsMessage(
-                modifier = Modifier.align(Alignment.Center),
-            )
-        } else {
-            TopControls(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                isSingleMode = singleMode,
-                uiState = uiState,
-                onToggleMode = { controller.setSingleMode(!singleMode) },
-                onClear = controller::requestClearAll,
-            )
-        }
-
-        GestureHint(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp),
-        )
-
+@Composable
+private fun BottomOverlay(
+    hasParams: Boolean,
+    controller: ArSceneController,
+    cartQuantityViewModel: CartQuantityViewModel,
+) {
+    if (!hasParams) return
+    val uiState by controller.uiState.collectAsState()
+    val cartState by cartQuantityViewModel.viewState.collectAsState()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         uiState.lastError?.let { error ->
             ErrorBanner(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                modifier = Modifier.padding(horizontal = 24.dp),
                 error = error,
                 onRetry = controller::retryModelLoad,
             )
         }
+        CartPicker(
+            state = cartState,
+            onIncrease = { cartQuantityViewModel.onEvent(CartQuantityEvent.OnIncrease) },
+            onDecrease = { cartQuantityViewModel.onEvent(CartQuantityEvent.OnDecrease) },
+        )
+        GestureHint(modifier = Modifier)
     }
+}
+
+@Composable
+private fun MissingParamsOverlay(
+    hasParams: Boolean,
+) {
+    if (hasParams) return
+    MissingParamsMessage(modifier = Modifier)
 }
 
 @Composable
@@ -215,6 +272,34 @@ private fun GestureHint(modifier: Modifier) {
         onClick = {},
         label = { Text("Тап — поставить • Long press — переместить • 2 пальца — вращать") },
     )
+}
+
+@Composable
+private fun CartPicker(
+    state: CartQuantityState,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit,
+) {
+    val content = state as? CartQuantityState.Content ?: return
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (content.quantity > 0) {
+            Button(onClick = onDecrease) {
+                Text("<")
+            }
+            Text(content.quantity.toString())
+            Button(onClick = onIncrease) {
+                Text(">")
+            }
+        } else {
+            Button(onClick = onIncrease) {
+                Text("Добавить в корзину")
+            }
+        }
+    }
 }
 
 @Composable

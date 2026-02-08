@@ -7,6 +7,7 @@ package com.poroshin.rut.ar.common.core
  */
 enum class NavigationTree {
     Plp,
+    Cart,
     Pdp,
     Ar,
 }
