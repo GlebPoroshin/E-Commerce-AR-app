@@ -170,14 +170,14 @@ private fun CartLineItem(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedButton(onClick = { onDecrease(snapshot.sku) }) {
-                    Text("<")
+                    Text("-")
                 }
                 Text(
                     text = quantity.toString(),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 OutlinedButton(onClick = { onIncrease(snapshot) }) {
-                    Text(">")
+                    Text("+")
                 }
             }
         }

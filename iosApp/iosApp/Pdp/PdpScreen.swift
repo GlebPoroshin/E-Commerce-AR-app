@@ -105,7 +105,7 @@ struct PdpScreen: View {
                         let quantity = Int(content.cartQuantity)
                         if quantity > 0 {
                             HStack(spacing: 12) {
-                                Button("<") {
+                                Button("-") {
                                     holder.sendEvent(PdpEvent.OnDecreaseCart(sku: content.product.sku))
                                 }
                                 .buttonStyle(.bordered)
@@ -115,7 +115,7 @@ struct PdpScreen: View {
                                     .font(.title3)
                                     .fontWeight(.bold)
 
-                                Button(">") {
+                                Button("+") {
                                     holder.sendEvent(PdpEvent.OnIncreaseCart(snapshot: makeSnapshot(from: content)))
                                 }
                                 .buttonStyle(.bordered)

@@ -164,7 +164,7 @@ private fun PdpContent(
                         modifier = Modifier.weight(1f),
                         onClick = { onDecreaseCartClick(state) },
                     ) {
-                        Text("<")
+                        Text("-")
                     }
                     Text(
                         text = state.cartQuantity.toString(),
@@ -175,7 +175,7 @@ private fun PdpContent(
                         modifier = Modifier.weight(1f),
                         onClick = { onIncreaseCartClick(state) },
                     ) {
-                        Text(">")
+                        Text("+")
                     }
                 }
             } else {

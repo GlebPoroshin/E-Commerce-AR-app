@@ -113,7 +113,7 @@ struct ArScreen: View {
                 let quantity = Int(content.quantity)
                 HStack(spacing: 12) {
                     if quantity > 0 {
-                        Button("<") {
+                        Button("-") {
                             cartHolder.sendEvent(CartQuantityEvent.OnDecrease())
                         }
                         .buttonStyle(.bordered)
@@ -123,7 +123,7 @@ struct ArScreen: View {
                             .foregroundStyle(.white)
                             .padding(.horizontal, 8)
 
-                        Button(">") {
+                        Button("+") {
                             cartHolder.sendEvent(CartQuantityEvent.OnIncrease())
                         }
                         .buttonStyle(.borderedProminent)

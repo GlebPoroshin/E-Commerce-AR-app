@@ -134,11 +134,11 @@ private struct CartRow: View {
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 8) {
-                    Button("<", action: onDecrease)
+                    Button("-", action: onDecrease)
                         .buttonStyle(.bordered)
                     Text("\(Int(line.quantity))")
                         .font(.headline)
-                    Button(">", action: onIncrease)
+                    Button("+", action: onIncrease)
                         .buttonStyle(.borderedProminent)
                 }
             }

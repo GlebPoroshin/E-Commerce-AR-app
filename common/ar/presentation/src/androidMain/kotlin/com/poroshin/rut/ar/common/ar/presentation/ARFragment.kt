@@ -288,11 +288,11 @@ private fun CartPicker(
     ) {
         if (content.quantity > 0) {
             Button(onClick = onDecrease) {
-                Text("<")
+                Text("-")
             }
             Text(content.quantity.toString())
             Button(onClick = onIncrease) {
-                Text(">")
+                Text("+")
             }
         } else {
             Button(onClick = onIncrease) {
