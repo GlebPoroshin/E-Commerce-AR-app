@@ -1,18 +1,25 @@
 package com.poroshin.rut.ar.common.plp.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.poroshin.rut.ar.common.plp.domain.Product
 import com.poroshin.rut.ar.common.plp.presentation.PlpViewModel
 import com.poroshin.rut.ar.common.plp.presentation.model.PlpEvent
 import com.poroshin.rut.ar.common.plp.presentation.model.PlpState
@@ -38,6 +45,13 @@ fun PlpScreen(
 
             is PlpState.Loading -> {
                 PlpLoading()
+            }
+
+            is PlpState.Error -> {
+                PlpError(
+                    message = viewState.message,
+                    onRetry = { viewModel.onEvent(PlpEvent.OnRetry) }
+                )
             }
         }
     }
@@ -74,6 +88,28 @@ private fun PlpLoading() {
     ) {
         items(6) {
             PairPlpItemsShimmer()
+        }
+    }
+}
+
+@Composable
+private fun PlpError(
+    message: String?,
+    onRetry: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = message ?: "Не удалось загрузить каталог",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(onClick = onRetry) {
+            Text(text = "Повторить")
         }
     }
 }

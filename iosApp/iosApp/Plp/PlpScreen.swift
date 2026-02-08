@@ -41,6 +41,10 @@ struct PlpScreen: View {
             PlpContentView(state: content) { sku in
                 holder.sendEvent(PlpEvent.OnProductClick(sku: sku))
             }
+        case let error as PlpState.Error:
+            PlpErrorView(message: error.message) {
+                holder.sendEvent(PlpEvent.OnRetry())
+            }
         default:
             EmptyView()
         }

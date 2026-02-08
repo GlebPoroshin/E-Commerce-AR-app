@@ -7,4 +7,6 @@ sealed class PlpState : UiState {
     data object Loading : PlpState()
 
     class Content(val items: List<Product>) : PlpState()
+
+    class Error(val message: String?) : PlpState()
 }

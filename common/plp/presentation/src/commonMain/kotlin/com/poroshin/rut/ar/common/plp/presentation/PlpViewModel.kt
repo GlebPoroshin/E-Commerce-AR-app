@@ -21,20 +21,28 @@ class PlpViewModel(
 
     override suspend fun handleEvent(event: PlpEvent) {
         when (event) {
-            is PlpEvent.OnCreate -> handleOnCreate()
+            is PlpEvent.OnCreate -> loadProducts()
+            is PlpEvent.OnRetry -> loadProducts()
 
             is PlpEvent.OnProductClick -> sendAction(PlpAction.OpenPdp(event.sku))
         }
     }
 
-    private fun handleOnCreate() {
+    private fun loadProducts() {
         viewModelScope.launch {
-            val loadedItems = getPlpProductsUseCase(loadedPage)
-            updateState {
-                PlpState.Content(
-                   items = loadedItems
-                )
-            }
+            runCatching { getPlpProductsUseCase(loadedPage) }
+                .onSuccess { loadedItems ->
+                    updateState {
+                        PlpState.Content(
+                            items = loadedItems
+                        )
+                    }
+                }
+                .onFailure { throwable ->
+                    updateState {
+                        PlpState.Error(throwable.message)
+                    }
+                }
         }
     }
 }

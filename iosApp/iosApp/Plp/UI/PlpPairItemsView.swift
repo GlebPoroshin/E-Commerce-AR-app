@@ -126,9 +126,25 @@ struct PlpLoadingView: View {
     }
 }
 
+struct PlpErrorView: View {
+    let message: String?
+    let onRetry: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(message ?? "Не удалось загрузить каталог")
+                .multilineTextAlignment(.center)
+                .foregroundColor(.primary)
+            Button("Повторить", action: onRetry)
+                .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.horizontal, 20)
+    }
+}
+
 private extension Array {
     func chunked(into size: Int) -> [[Element]] {
         stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) }
     }
 }
-
