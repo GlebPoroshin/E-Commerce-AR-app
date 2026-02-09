@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -157,11 +158,11 @@ private fun PdpContent(
             if (state.cartQuantity > 0) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     OutlinedButton(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.width(56.dp),
                         onClick = { onDecreaseCartClick(state) },
                     ) {
                         Text("-")
@@ -172,7 +173,7 @@ private fun PdpContent(
                         fontWeight = FontWeight.Bold,
                     )
                     OutlinedButton(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.width(56.dp),
                         onClick = { onIncreaseCartClick(state) },
                     ) {
                         Text("+")

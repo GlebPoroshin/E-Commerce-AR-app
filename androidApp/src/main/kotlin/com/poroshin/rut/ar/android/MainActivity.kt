@@ -5,9 +5,14 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -16,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -177,7 +183,12 @@ private fun MainScaffold(
                     NavigationBarItem(
                         selected = selectedTab == AppTab.Main,
                         onClick = { onTabSelected(AppTab.Main) },
-                        icon = { Text("M") },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Filled.Home,
+                                contentDescription = "Главная",
+                            )
+                        },
                         label = { Text("Главная") },
                     )
                     NavigationBarItem(
@@ -187,13 +198,23 @@ private fun MainScaffold(
                             if (badgeText != null) {
                                 BadgedBox(
                                     badge = {
-                                        Badge { Text(badgeText) }
+                                        Badge(
+                                            modifier = Modifier.offset(x = 6.dp, y = (-4).dp),
+                                        ) {
+                                            Text(badgeText)
+                                        }
                                     }
                                 ) {
-                                    Text("C")
+                                    Icon(
+                                        imageVector = Icons.Filled.ShoppingCart,
+                                        contentDescription = "Корзина",
+                                    )
                                 }
                             } else {
-                                Text("C")
+                                Icon(
+                                    imageVector = Icons.Filled.ShoppingCart,
+                                    contentDescription = "Корзина",
+                                )
                             }
                         },
                         label = { Text("Корзина") },

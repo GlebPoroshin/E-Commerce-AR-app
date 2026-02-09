@@ -149,7 +149,12 @@ class PdpViewModel(
 
             val finalState = viewState.value
             if (finalState is PdpState.Content) {
-                updateState { finalState.copy(loadingState = null) }
+                updateState {
+                    finalState.copy(
+                        loadingState = null,
+                        isModelExists = true,
+                    )
+                }
             }
 
             sendAction(

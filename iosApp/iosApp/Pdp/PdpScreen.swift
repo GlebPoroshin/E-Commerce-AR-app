@@ -44,6 +44,11 @@ struct PdpScreen: View {
                 }
                 holder.sendEvent(PdpEvent.OnCreate(sku: sku))
             }
+            .onChange(of: router.presentedAr) { route in
+                if route == nil {
+                    holder.sendEvent(PdpEvent.OnResume())
+                }
+            }
             .onDisappear { holder.stop() }
     }
 
