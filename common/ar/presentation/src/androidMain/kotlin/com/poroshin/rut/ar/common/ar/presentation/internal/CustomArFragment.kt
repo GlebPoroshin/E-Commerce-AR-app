@@ -126,7 +126,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     override fun onCreateSessionConfig(session: Session): Config {
         return super.onCreateSessionConfig(session).apply {
             planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-            lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+            lightEstimationMode = Config.LightEstimationMode.DISABLED
         }
     }
 
@@ -502,6 +502,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         val uri = Uri.fromFile(file)
         ModelRenderable.builder()
             .setSource(requireContext(), uri)
+            .setIsFilamentGltf(true)
             .setRegistryId(uri.toString())
             .build()
             .thenAccept { renderable: ModelRenderable ->

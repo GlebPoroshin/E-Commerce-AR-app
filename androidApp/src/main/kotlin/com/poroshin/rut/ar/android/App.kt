@@ -20,7 +20,7 @@ class App : Application() {
         super.onCreate()
 
         val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        BackendConfig.setUseMockFallback(isDebuggable)
+        BackendConfig.setUseMockFallback(true)
 
         startKoin {
             modules(
