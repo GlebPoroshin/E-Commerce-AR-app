@@ -6,7 +6,6 @@ import org.koin.dsl.module
 import com.poroshin.rut.ar.common.plp.domain.GetPlpProductsUseCase
 
 val plpDataModule: Module = module {
-    single<GetPlpProductsUseCase> { GetPlpProductsUseCaseImpl() }
+    single<GetPlpProductsUseCase> { GetPlpProductsUseCaseImpl(get()) }
 }
-
 

@@ -4,66 +4,66 @@ import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.Screen
 
 /**
- * Router-обёртка, которая перенаправляет команды навигации на `parentRouter`, если тот задан.
+ * Router wrapper that redirects navigation commands to `parentRouter` if it's set.
  *
- * Используется для организации независимых flow'ов, где есть родительский Router (например, в Activity) и дочерние FlowRouter'ы для модулей.
+ * Used for organizing independent flows, where there's a parent Router (e.g., in Activity) and child FlowRouter's for modules.
  *
- * @param parentRouter если не null — все команды будут выполняться на нём, иначе — на этом экземпляре.
+ * @param parentRouter if not null — all commands will be executed on it, otherwise — on this instance.
  */
 class FlowRouter(private val parentRouter: Router?) : Router() {
 
     /**
-     * Запускает flow, навигируя на указанный экран.
+     * Starts flow by navigating to specified screen.
      *
-     * @param screen экран, с которого начинается flow.
+     * @param screen screen from which flow starts.
      */
     fun startFlow(screen: Screen) {
         runCommand { navigateTo(screen) }
     }
 
     /**
-     * Заменяет корень навигации на переданный экран — запуск нового корня flow'а.
+     * Replaces navigation root with passed screen — starting new flow root.
      *
-     * @param screen экран, который станет новым корнем.
+     * @param screen screen that will become new root.
      */
     fun newRootFlow(screen: Screen) {
         runCommand { newRootScreen(screen) }
     }
 
     /**
-     * Завершает текущий flow (вызывает `exit()`).
+     * Finishes current flow (calls `exit()`).
      */
     fun finishFlow() {
         runCommand { exit() }
     }
 
     /**
-     * Выполняет "pop" — один шаг назад (эквивалент Router.exit()).
+     * Executes "pop" — one step back (equivalent to Router.exit()).
      */
     fun pop() {
         runCommand { exit() }
     }
 
     /**
-     * Выполняет pop до указанного экрана (backTo).
+     * Executes pop to specified screen (backTo).
      *
-     * @param screen экран, до которого нужно откатиться. Если экран не найден в стеке — поведение Router'а.
+     * @param screen screen to rollback to. If screen not found in stack — Router behavior.
      */
     fun popTo(screen: Screen) {
         runCommand { backTo(screen) }
     }
 
     /**
-     * Выполняет pop до корня навигации. Использует `backTo(null)` — откат на самый корень.
+     * Executes pop to navigation root. Uses `backTo(null)` — rollback to deepest root.
      */
     fun popToRoot() {
         runCommand { backTo(null) }
     }
 
     /**
-     * Выполняет команду навигации — на `parentRouter`, если он задан, иначе на этом экземпляре.
+     * Executes navigation command — on `parentRouter` if it's set, otherwise on this instance.
      *
-     * @param command лямбда с вызовами Router.* (navigateTo, newRootScreen, exit и т.д.).
+     * @param command lambda with Router.* calls (navigateTo, newRootScreen, exit etc.).
      */
     private fun runCommand(command: Router.() -> Unit) {
         if (parentRouter != null) parentRouter.command() else this.command()

@@ -24,6 +24,10 @@ include(":common:core")
 include(":common:mvi")
 include(":common:umbrella")
 
+include(":common:cart:domain")
+include(":common:cart:data")
+include(":common:cart:presentation")
+
 include(":common:plp:domain")
 include(":common:plp:data")
 include(":common:plp:presentation")

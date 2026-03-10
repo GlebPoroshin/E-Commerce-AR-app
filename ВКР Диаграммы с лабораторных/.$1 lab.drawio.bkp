@@ -1,0 +1,209 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.5.2 Chrome/142.0.7444.265 Electron/39.6.1 Safari/537.36" version="29.5.2" pages="4">
+  <diagram name="C4 Context" id="ctx-page">
+    <mxGraphModel dx="1645" dy="1221" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;C4 Context Diagram&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Задание 1 + домашняя доработка: акторы, внешние системы, use cases и peer review&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="1200" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="buyer" parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;resizable=0;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Покупатель&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Actor]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Пользователь мобильного приложения, который выбирает мебель и управляет корзиной&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="200" x="60" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="system" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#1061B0;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0D5091;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Система магазина мебели с AR-примеркой&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[System under Design]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Единая цифровая система для просмотра каталога, карточки товара, AR-примерки и управления корзиной&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="170" width="360" x="520" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="cdn" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;CDN / Object Storage&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Хранит изображения товаров и 3D-модели, которые загружает клиентское приложение&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="280" x="1120" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ar_platform" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;AR-платформа устройства&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;ARCore / ARKit: поиск плоскостей, трекинг, размещение объекта и рендеринг сцены&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="280" x="1120" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="buyer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="system" value="Просматривает каталог,&lt;div&gt;&amp;nbsp;открывает карточку товара,&lt;/div&gt;&lt;div&gt;&amp;nbsp;запускает AR-примерку,&lt;/div&gt;&lt;div&gt;&amp;nbsp;управляет корзиной&lt;/div&gt;">
+          <mxGeometry relative="1" x="0.004" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="cdn" value="Запрашивает изображения&amp;nbsp;&lt;div&gt;и 3D-модели товаров&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="ar_platform" value="Использует датчики устройства &lt;br&gt;и AR-сервисы&lt;div&gt;для примерки мебели в интерьере&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_note" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Акторы, внешние системы и ключевые Use Cases&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Актор: Покупатель.&lt;/div&gt;&lt;div&gt;Внешние системы: CDN / Object Storage, AR-платформа устройства (ARCore / ARKit).&lt;/div&gt;&lt;div&gt;Use Case 1: Покупатель просматривает листинг товаров.&lt;/div&gt;&lt;div&gt;Use Case 2: Покупатель открывает карточку товара и изучает характеристики.&lt;/div&gt;&lt;div&gt;Use Case 3: Покупатель загружает 3D-модель и запускает AR-примерку.&lt;/div&gt;&lt;div&gt;Use Case 4: Покупатель добавляет товар в корзину и меняет количество.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="530" x="40" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="pz" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E2F0D9;strokeColor=#82B366;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Описание Для ПЗ&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Контекстная диаграмма показывает систему магазина мебели с AR-примеркой как единый программный продукт. Основным пользователем является покупатель, который просматривает каталог, изучает карточки товаров, запускает AR-сценарий и управляет составом корзины.&lt;/div&gt;&lt;div&gt;Для реализации пользовательских сценариев система взаимодействует с внешним CDN / Object Storage, из которого получает изображения и 3D-модели товаров, а также с AR-платформой устройства, обеспечивающей поиск плоскостей, трекинг и размещение виртуальных объектов. Технологические детали намеренно скрыты, так как они относятся к контейнерному уровню C4.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="700" x="620" y="580" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="C4 Container" id="container-page">
+    <mxGraphModel dx="3363" dy="2309" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;C4 Container Diagram&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Домашняя доработка к заданию 1: продуманный Level 2 с контейнерами и технологиями&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="1200" x="-1500" y="-890" as="geometry" />
+        </mxCell>
+        <mxCell id="buyer2" parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;resizable=0;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Покупатель&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Actor]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Использует мобильное приложение для выбора мебели и AR-примерки&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="180" x="-1560" y="-465" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6C8EBF;dashed=1;dashPattern=8 8;arcSize=10;fontStyle=1;fontSize=18;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontFamily=Times New Roman;strokeWidth=2;" value="Система магазина мебели с AR-примеркой" vertex="1">
+          <mxGeometry height="810" width="1090" x="-1290" y="-790" as="geometry" />
+        </mxCell>
+        <mxCell id="mobile" parent="1" style="shape=mxgraph.c4.webBrowserContainer2;whiteSpace=wrap;html=1;boundedLbl=1;labelBackgroundColor=none;strokeColor=#118ACD;fillColor=#23A2D9;strokeColor2=#0E7DAD;fontSize=12;fontColor=#ffffff;align=center;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Мобильное приложение&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: Kotlin Multiplatform, Jetpack Compose, SwiftUI]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Показывает каталог, PDP, корзину и запускает AR-сценарии&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="170" width="270" x="-1090" y="-460" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#23A2D9;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0E7DAD;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Backend API&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: REST API]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Отдает PLP/PDP-данные, характеристики товаров и ссылки на AR-ресурсы&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="170" width="270" x="-1090" y="-730" as="geometry" />
+        </mxCell>
+        <mxCell id="catalog_db" parent="1" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;boundedLbl=1;rounded=0;labelBackgroundColor=none;fillColor=#23A2D9;fontSize=12;fontColor=#ffffff;align=center;strokeColor=#0E7DAD;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Каталог товаров&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: Database]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Хранит карточки товаров, характеристики, рейтинги и ссылки на медиа&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="270" x="-620" y="-715" as="geometry" />
+        </mxCell>
+        <mxCell id="cart_db" parent="1" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;boundedLbl=1;rounded=0;labelBackgroundColor=none;fillColor=#23A2D9;fontSize=12;fontColor=#ffffff;align=center;strokeColor=#0E7DAD;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Локальная БД корзины&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: SQLDelight / SQLite]&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="270" x="-1140" y="-160" as="geometry" />
+        </mxCell>
+        <mxCell id="model_cache" parent="1" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;boundedLbl=1;rounded=0;labelBackgroundColor=none;fillColor=#23A2D9;fontSize=12;fontColor=#ffffff;align=center;strokeColor=#0E7DAD;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Локальный кэш 3D-моделей&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: File System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Сохраняет скачанные GLB / USDZ-модели для AR-примерки&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="240" x="-1410" y="-160" as="geometry" />
+        </mxCell>
+        <mxCell id="cdn2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;CDN / Object Storage&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;Отдает изображения товаров и 3D-модели по ссылкам из каталога&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="250" x="-570" y="-520" as="geometry" />
+        </mxCell>
+        <mxCell id="ar2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;resizable=0;fontFamily=Times New Roman;strokeWidth=2;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;AR-платформа устройства&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot; color=&quot;#d9e2f2&quot;&gt;ARCore / ARKit обеспечивает трекинг, raycast и размещение моделей&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="250" x="-570" y="-320" as="geometry" />
+        </mxCell>
+        <mxCell id="ce1" edge="1" parent="1" source="buyer2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="mobile" value="Просматривает каталог,&lt;div&gt;&amp;nbsp;открывает карточку товара,&lt;/div&gt;&lt;div&gt;&amp;nbsp;запускает AR-примерку,&lt;/div&gt;&lt;div&gt;&amp;nbsp;управляет корзиной&lt;/div&gt;">
+          <mxGeometry relative="1" x="-0.0047" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ce2" edge="1" parent="1" source="mobile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="api" value="Данные PLP/PDP">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce3" edge="1" parent="1" source="api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="catalog_db" value="Catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce4" edge="1" parent="1" source="mobile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="cart_db" value="Cart">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="model_cache" value="Cache">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-1040" y="-240" />
+              <mxPoint x="-1290" y="-240" />
+            </Array>
+            <mxPoint x="-1040" y="-290" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ce6" edge="1" parent="1" source="mobile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="cdn2" value="доступ к Media">
+          <mxGeometry relative="1" x="0.0043" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ce7" edge="1" parent="1" source="mobile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="ar2" value="доступ к датчикам устройства">
+          <mxGeometry relative="1" x="0.0036" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E2F0D9;strokeColor=#82B366;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Связь Use Cases с контейнерами&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Каталог и карточка товара идут через Mobile App -&amp;gt; Backend API -&amp;gt; Catalog DB.&lt;/div&gt;&lt;div&gt;Изображения и 3D-модели загружаются напрямую из CDN / Object Storage.&lt;/div&gt;&lt;div&gt;Корзина и версии моделей сохраняются локально в SQLDelight / SQLite.&lt;/div&gt;&lt;div&gt;AR-примерка опирается на ARCore / ARKit и локальный файловый кэш моделей.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="1270" x="-1460" y="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Domain Model" id="domain-page">
+    <mxGraphModel dx="1898" dy="1409" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;UML Domain Model&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Задание 2 + сущности, методы, связи, Value Objects и инварианты&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="1200" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="product" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;Product&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;sku: Long&lt;br&gt;name: String&lt;br&gt;description: String&lt;br&gt;rating: Double&lt;br&gt;stock: Int?&lt;br&gt;deliveryInfo: String?&lt;br&gt;price: Money&lt;br&gt;oldPrice: Money?&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;primaryImage(): ProductImage?&lt;br&gt;hasDiscount(): Boolean&lt;br&gt;supportsArPreview(): Boolean&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="310" width="320" x="20" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="cart" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;ShoppingCart&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;createdAt: Instant&lt;br&gt;updatedAt: Instant&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;addItem(snapshot: CartItemSnapshot)&lt;br&gt;decrementItem(sku: Long)&lt;br&gt;removeItem(sku: Long)&lt;br&gt;totalAmount(): Money&lt;br&gt;uniqueSkuCount(): Int&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="250" width="320" x="20" y="725" as="geometry" />
+        </mxCell>
+        <mxCell id="money" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;Money&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;amountRubles: Long&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;plus(other: Money): Money&lt;br&gt;multiply(quantity: Int): Money&lt;br&gt;format(): String&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="200" width="260" x="490" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="image" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;ProductImage&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;url: String&lt;br&gt;isPrimary: Boolean&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;isRemote(): Boolean&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="180" width="170" x="490" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="attribute" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;ProductAttribute&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;name: String&lt;br&gt;value: String&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;asPair(): Pair&amp;lt;String, String&amp;gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="180" width="180" x="500" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="cartline" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;CartLine&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;quantity: Int&lt;br&gt;updatedAt: Instant&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;increment(): Int&lt;br&gt;decrement(): Int&lt;br&gt;subtotal(): Money?&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="220" width="170" x="500" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="armodel" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;ArModel&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;version: Int&lt;br&gt;resourceUrl: String&lt;br&gt;arType: ArType&lt;br&gt;placement: ArPlacement&lt;br&gt;dimensions: ProductDimensions&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;requiresDownload(): Boolean&lt;br&gt;supports(planeType: ArPlaneType): Boolean&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="240" width="320" x="780" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="dimensions" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;ProductDimensions&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;widthMm: Float&lt;br&gt;heightMm: Float&lt;br&gt;depthMm: Float&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;footprintMm(): Float&lt;br&gt;hasPositiveDepth(): Boolean&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="210" width="230" x="820" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="snapshot" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;CartItemSnapshot&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;sku: Long&lt;br&gt;name: String&lt;br&gt;price: Money&lt;br&gt;image: ProductImage&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;matches(sku: Long): Boolean&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="215" width="200" x="820" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="policy" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE4D6;strokeColor=#D79B00;align=left;verticalAlign=top;fontFamily=Times New Roman;strokeWidth=2;spacing=4;" value="&lt;table border=&quot;0&quot; cellpadding=&quot;4&quot; cellspacing=&quot;0&quot; style=&quot;width:100%;height:100%;&quot;&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 18px&quot;&gt;&amp;lt;&amp;lt;Domain Service&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;ArPlacementPolicy&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;no state&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;hr/&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;left&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;supportsPlane(placement, planeType): Boolean&lt;br&gt;allowedRaycastAlignments(placement): Set&amp;lt;Alignment&amp;gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="205" width="280" x="1310" y="197.5" as="geometry" />
+        </mxCell>
+        <mxCell id="de1" edge="1" parent="1" source="product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;exitX=1.004;exitY=0.102;exitDx=0;exitDy=0;exitPerimeter=0;" target="money" value="price / oldPrice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de2" edge="1" parent="1" source="product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="image" value="1..* images">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de3" edge="1" parent="1" source="product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="attribute" value="0..* attributes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de4" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="armodel" value="0..1 arModel">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="290" />
+            </Array>
+            <mxPoint x="340" y="290" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="de5" edge="1" parent="1" source="armodel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="dimensions" value="1 dimensions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de6" edge="1" parent="1" source="cart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="cartline" value="0..* lines">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de7" edge="1" parent="1" source="cartline" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="snapshot" value="1 snapshot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de10" edge="1" parent="1" source="armodel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" target="policy" value="validates placement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vo_note" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E2F0D9;strokeColor=#82B366;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Value Objects&lt;/b&gt;&lt;/font&gt;&lt;div&gt;Money убирает строковые цены из бизнес-логики и позволяет считать сумму корзины.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;ProductImage и ProductAttribute делают медиа и характеристики отдельными объектами предметной области.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;ProductDimensions собирает размеры AR-модели в единый объект вместо россыпи примитивов.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;CartItemSnapshot фиксирует состояние товара на момент добавления в корзину.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="310" width="360" x="1180" y="500" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Пояснения" id="notes-page">
+    <mxGraphModel dx="1898" dy="1409" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;Пояснения К Диаграммам&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Домашние дополнения: текст для ПЗ, объяснение моделирования и прикидка ORM / БД&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="1200" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="pz1" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Текст к контекстной диаграмме&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Контекстная диаграмма описывает систему магазина мебели с поддержкой дополненной реальности как единый программный продукт. Основным пользователем выступает покупатель, который просматривает каталог товаров, открывает карточку товара, запускает AR-примерку и управляет наполнением корзины.&lt;/div&gt;&lt;div&gt;Во внешнем окружении система зависит от CDN / Object Storage, из которого получает изображения и 3D-модели, а также от AR-платформы устройства, отвечающей за поиск плоскостей, трекинг и корректное размещение виртуальной модели в пространстве комнаты. В соответствии с правилами C4 на данном уровне намеренно не показаны REST API, базы данных и локальные таблицы, так как это детали контейнерного уровня.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="1480" x="40" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="pz2" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Текст к доменной модели&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;В доменной модели сущность Product играет роль центрального агрегата каталога и инкапсулирует цену, медиаконтент, характеристики и опциональную AR-конфигурацию. Композиция выбрана в тех местах, где вложенный объект не имеет самостоятельного бизнес-смысла без родителя: изображения, характеристики и AR-модель принадлежат конкретному товару, а CartLine принадлежит ShoppingCart.&lt;/div&gt;&lt;div&gt;Корзина оформлена как агрегат ShoppingCart, который управляет жизненным циклом строк корзины и инвариантами изменения количества. CartItemSnapshot выделен как отдельный Value Object, чтобы хранить стабильную копию данных товара на момент добавления в корзину и не зависеть от последующих изменений каталога. Такой подход согласуется с текущей реализацией приложения, где корзина живет локально и не зависит от обновлений карточки товара.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="1480" x="40" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="mapping" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FCE4D6;strokeColor=#D79B00;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Прикидка маппинга на БД / ORM&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Product -&amp;gt; таблица products (sku PK, name, description, rating, stock, delivery_info, price_amount, old_price_amount).&lt;/div&gt;&lt;div&gt;ProductImage -&amp;gt; таблица product_images (product_sku FK, url, is_primary), связь one-to-many.&lt;/div&gt;&lt;div&gt;ProductAttribute -&amp;gt; таблица product_attributes (product_sku FK, name, value), связь one-to-many.&lt;/div&gt;&lt;div&gt;ArModel -&amp;gt; таблица product_ar_models (product_sku PK/FK, version, resource_url, ar_type, placement, width_mm, height_mm, depth_mm), связь one-to-one.&lt;/div&gt;&lt;div&gt;ShoppingCart в мобильном приложении может храниться без отдельной таблицы cart header: cart_items уже естественно описывает локальный single-user cart.&lt;/div&gt;&lt;div&gt;CartItemSnapshot маппится как embedded-поля в cart_items: sku, name, price_text / price_amount, image_url.&lt;/div&gt;&lt;div&gt;model_versions остается технической таблицей локального кэша и не считается бизнес-сущностью доменной модели.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="210" width="1480" x="40" y="640" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

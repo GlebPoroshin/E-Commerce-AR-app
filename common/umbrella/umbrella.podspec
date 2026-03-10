@@ -7,7 +7,7 @@ Pod::Spec.new do |spec|
     spec.license                  = ''
     spec.summary                  = 'App KMM framework'
     spec.vendored_frameworks      = 'build/cocoapods/framework/ARApp.framework'
-    spec.libraries                = 'c++'
+                
     spec.ios.deployment_target    = '16.0'
                 
                 
@@ -50,5 +50,5 @@ Pod::Spec.new do |spec|
             SCRIPT
         }
     ]
-                
+    spec.libraries = 'c++', 'sqlite3'
 end

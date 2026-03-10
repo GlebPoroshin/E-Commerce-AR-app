@@ -7,22 +7,22 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /**
- * Базовый KMM ViewModel для presentation слоя.
- * Спроектирована в соответствии с паттерном MVI+UDF.
+ * Base KMM ViewModel for presentation layer.
+ * Designed according to MVI+UDF pattern.
  *
- * Содержит три потока данных:
- *  - [viewState]  — состояние экрана. Извне можно подписаться только на чтение.
- *  - [viewAction] — одноразовые действия (навигация, сообщения, диалоги и т.п.; только чтение).
- *  - входящие события от UI принимаются только через [onEvent]; прямого доступа к потоку событий нет.
+ * Contains three data streams:
+ *  - [viewState]  — screen state. External access is read-only.
+ *  - [viewAction] — one-time actions (navigation, messages, dialogs etc.; read-only).
+ *  - incoming events from UI are accepted only through [onEvent]; no direct access to event stream.
  *
- * Инварианты инкапсуляции:
- *  - Извне разрешено только: читать [viewState]/[viewAction] и вызывать [onEvent].
- *  - Менять состояние/генерировать действия можно только внутри через [updateState] и [sendAction].
+ * Encapsulation invariants:
+ *  - External access allowed only: read [viewState]/[viewAction] and call [onEvent].
+ *  - State changes/action generation only inside through [updateState] and [sendAction].
  *
- * @param S тип состояния (обычно data class).
- * @param E тип входящих событий(намерений) от UI.
- * @param A тип действий для UI.
- * @param initialState стартовое состояние viewmodel.
+ * @param S state type (usually data class).
+ * @param E incoming event type (intent) from UI.
+ * @param A action type for UI.
+ * @param initialState starting state of viewmodel.
  */
 abstract class SharedViewModel<S : UiState, E : UiEvent, A : UiAction>(
     initialState: S
@@ -51,8 +51,8 @@ abstract class SharedViewModel<S : UiState, E : UiEvent, A : UiAction>(
     }
 
     /**
-     * Ручка, с помощью которою события из UI эмитятся в поток.
-     * Событие улетает в корутину обработчика [handleEvent].
+     * Handle for emitting events from UI into stream.
+     * Event goes to handler coroutine [handleEvent].
      */
     fun onEvent(event: E) {
         if (!_events.tryEmit(event)) {
@@ -61,16 +61,16 @@ abstract class SharedViewModel<S : UiState, E : UiEvent, A : UiAction>(
     }
 
     /**
-     * Изменить/обновить ViewState.
-     * Используется только внутри самой viewmodel.
+     * Change/update ViewState.
+     * Used only inside the viewmodel itself.
      */
     protected fun updateState(reducer: S.() -> S) {
         _state.update { it.reducer() }
     }
 
     /**
-     * Отправить ViewAction UI.
-     * Использовать для навигации/сообщений/диалогов.
+     * Send ViewAction to UI.
+     * Use for navigation/messages/dialogs.
      */
     protected fun sendAction(action: A) {
         if (!_actions.tryEmit(action)) {
@@ -79,13 +79,13 @@ abstract class SharedViewModel<S : UiState, E : UiEvent, A : UiAction>(
     }
 
     /**
-     * Текущее состояние (для чтения внутри VM).
+     * Current state (for reading inside VM).
      */
     protected val currentState: S get() = _state.value
 
     /**
-     * Обработка событий UI. Здесь меняем state и шлём actions.
-     * Либо вызываем handler'ы - делегаты, передавай в них ViewEvent.
+     * UI event handling. Here we change state and send actions.
+     * Or call handlers - delegates, passing ViewEvent to them.
      */
     protected abstract suspend fun handleEvent(event: E)
 }

@@ -1,17 +1,20 @@
 package com.poroshin.rut.ar.common.pdp.presentation.model
 
+import com.poroshin.rut.ar.common.cart.domain.CartItemSnapshot
 import com.poroshin.rut.ar.common.mvi.UiEvent
 
 sealed class PdpEvent : UiEvent {
     data class OnCreate(val sku: Long) : PdpEvent()
 
-    class OnModelLoad(
-        val sku: Long,
-        val url: String,
-        val version: Int,
-    ) : PdpEvent()
+    class OnModelLoad(val state: PdpState.Content) : PdpEvent()
 
     data object OnRetry : PdpEvent()
+
+    data object OnResume : PdpEvent()
+
+    data class OnDeleteModel(val sku: Long) : PdpEvent()
+
+    data class OnIncreaseCart(val snapshot: CartItemSnapshot) : PdpEvent()
+
+    data class OnDecreaseCart(val sku: Long) : PdpEvent()
 }
-
-

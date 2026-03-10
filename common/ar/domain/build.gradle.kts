@@ -21,15 +21,21 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.common.pdp.domain)
+            implementation(projects.common.cart.domain)
+
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
     }
 }
 
 android {
     namespace = "com.poroshin.rut.ar.ar.domain"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig {
         minSdk = 24
     }
@@ -38,5 +44,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
-

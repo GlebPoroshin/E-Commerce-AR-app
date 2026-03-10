@@ -27,6 +27,9 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(projects.common.ar.domain)
+            implementation(projects.common.pdp.domain)
+            implementation(projects.common.mvi)
         }
         androidMain.dependencies {
             implementation(libs.compose.runtime)
@@ -35,16 +38,10 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
             implementation(libs.androidx.fragment)
-        }
-
-
-        jvmMain {
-            dependencies {
-                // Необходимо для сборки jmv модуля, так как применен jetpack compose plugin
-//                implementation(
-//                    "org.jetbrains.compose.desktop:desktop:${org.jetbrains.compose.ComposeBuildConfig.composeVersion}",
-//                )
-            }
+            implementation(libs.google.arcore)
+            implementation(libs.sceneform)
+            implementation(projects.common.cart.domain)
+            implementation(projects.common.cart.presentation)
         }
     }
 }
@@ -60,5 +57,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
-

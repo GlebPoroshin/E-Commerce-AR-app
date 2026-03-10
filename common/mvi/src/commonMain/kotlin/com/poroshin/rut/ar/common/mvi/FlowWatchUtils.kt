@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.DisposableHandle
 
 /**
- * Хелпер для iOS: подписаться на Flow на главном потоке и получить handle для dispose().
+ * Helper for iOS: subscribe to Flow on main thread and get handle for dispose().
  *
- * Использование на Swift:
+ * Usage in Swift:
  *   let handle = vm.viewState.watch { state in ... }
  *   handle.dispose()
  */
@@ -23,7 +23,7 @@ fun <T> Flow<T>.watch(onEach: (T) -> Unit): DisposableHandle {
 }
 
 /**
- * Возвращает единый DisposableHandle и на state, и на action(обе подписки закроются разом).
+ * Returns single DisposableHandle for both state and action (both subscriptions will close together).
  */
 fun <S : Any, A : Any> bind(
     state: Flow<S>,

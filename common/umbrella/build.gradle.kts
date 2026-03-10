@@ -20,6 +20,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.common.cart.data)
+            implementation(projects.common.cart.domain)
+            api(projects.common.cart.presentation)
+
             implementation(projects.common.ar.data)
             implementation(projects.common.ar.domain)
             api(projects.common.ar.presentation)
@@ -44,10 +48,14 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.cicerone)
             implementation(libs.koin.android)
+            implementation(projects.common.pdp.data)
             api(projects.common.core)
         }
 
         iosMain.dependencies {
+            api(projects.common.cart.data)
+            api(projects.common.cart.domain)
+
             api(projects.common.ar.data)
             api(projects.common.ar.domain)
 
@@ -67,10 +75,15 @@ kotlin {
         homepage = "https://example"
         version = "1.0.0"
         ios.deploymentTarget = "16.0"
+        extraSpecAttributes["libraries"] = "'c++', 'sqlite3'"
         framework {
             baseName = "ARApp"
             isStatic = true
+            linkerOpts("-lsqlite3")
             export(projects.common.mvi)
+
+            export(projects.common.cart.domain)
+            export(projects.common.cart.presentation)
 
             export(projects.common.ar.domain)
             export(projects.common.ar.presentation)

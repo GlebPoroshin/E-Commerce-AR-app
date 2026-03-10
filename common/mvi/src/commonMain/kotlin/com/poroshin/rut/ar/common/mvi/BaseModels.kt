@@ -1,23 +1,23 @@
 package com.poroshin.rut.ar.common.mvi
 
 /**
- * Маркеры-алиасы для ясности контрактов.
- * Можно не реализовывать явно, но удобны для единообразия типов.
+ * Marker aliases for contract clarity.
+ * May not be implemented explicitly, but convenient for type uniformity.
  */
 
 /**
- * Маркер для класса, предназначенного для хранения текущего состояния UI
+ * Marker for class intended to store current UI state
  */
 interface UiState
 
 /**
- * Маркер для класса, предназначенного для передачи событий от UI (View)
- * Если говорим в терминологии MVI - Intent(намерение)
+ * Marker for class intended to pass events from UI (View)
+ * In MVI terminology - Intent
  */
 interface UiEvent
 
 /**
- * Маркер для класса, предназначенного для передачи действий, которые создает ViewModel,
- * а выполняет нативный presentation. Зачастую исполняет эти действия Router в навигации
+ * Marker for class intended to pass actions that ViewModel creates,
+ * and native presentation executes. Often Router executes these actions in navigation
  */
 interface UiAction

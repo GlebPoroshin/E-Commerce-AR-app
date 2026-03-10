@@ -27,14 +27,18 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.common.mvi)
             implementation(projects.common.pdp.domain)
+            implementation(projects.common.ar.domain)
+            implementation(projects.common.cart.domain)
 
             implementation(libs.koin.core)
+            implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {
             implementation(libs.androidx.fragment)
             implementation(libs.androidx.compose.material3)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.coil.compose)
 
             implementation(libs.compose.ui)
             implementation(libs.compose.runtime)
@@ -42,6 +46,7 @@ kotlin {
 
             implementation(libs.cicerone)
             implementation(projects.common.core)
+            implementation(projects.common.ar.presentation)
 
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
@@ -60,5 +65,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
-

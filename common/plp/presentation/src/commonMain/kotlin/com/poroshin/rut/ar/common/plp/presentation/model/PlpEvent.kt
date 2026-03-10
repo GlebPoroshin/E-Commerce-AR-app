@@ -4,5 +4,6 @@ import com.poroshin.rut.ar.common.mvi.UiEvent
 
 sealed class PlpEvent : UiEvent {
     data object OnCreate: PlpEvent()
+    data object OnRetry: PlpEvent()
     class OnProductClick(val sku: Long) : PlpEvent()
 }

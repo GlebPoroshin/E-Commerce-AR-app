@@ -1,17 +1,37 @@
 package com.poroshin.rut.ar.common.plp.data
 
+import com.poroshin.rut.ar.common.core.BackendConfig
 import com.poroshin.rut.ar.common.plp.domain.Product
 import com.poroshin.rut.ar.common.plp.domain.GetPlpProductsUseCase
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 
-class GetPlpProductsUseCaseImpl : GetPlpProductsUseCase {
+class GetPlpProductsUseCaseImpl(
+    private val httpClient: HttpClient,
+) : GetPlpProductsUseCase {
     override suspend fun invoke(page: Int?): List<Product> = withContext(Dispatchers.IO) {
-        delay(1500L)
+        runCatching {
+            val response: List<PlpProductDto> = httpClient.get("${BackendConfig.apiBaseUrl()}/plp") {
+                page?.let { parameter("page", it) }
+            }.body()
+            response.map { it.toDomain() }
+        }.getOrElse {
+            if (BackendConfig.isMockFallbackEnabled()) {
+                mockProducts()
+            } else {
+                throw it
+            }
+        }
+    }
 
-        listOf(
+    private fun mockProducts(): List<Product> {
+        return listOf(
             Product(
                 1000L,
                 "Диван Skandi",
@@ -64,4 +84,29 @@ class GetPlpProductsUseCaseImpl : GetPlpProductsUseCase {
             ),
         )
     }
+
+    private fun PlpProductDto.toDomain(): Product {
+        return Product(
+            sku = sku,
+            name = name,
+            description = description,
+            price = price,
+            imageUrl = imageUrl,
+            oldPrice = oldPrice,
+            discount = discount,
+            rate = rate,
+        )
+    }
 }
+
+@Serializable
+private data class PlpProductDto(
+    val sku: Long,
+    val name: String,
+    val description: String,
+    val price: String,
+    val imageUrl: String,
+    val oldPrice: String? = null,
+    val discount: Int? = null,
+    val rate: Double = 0.0,
+)

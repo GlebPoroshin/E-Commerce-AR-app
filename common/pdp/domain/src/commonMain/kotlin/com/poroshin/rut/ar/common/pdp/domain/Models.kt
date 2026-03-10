@@ -1,21 +1,33 @@
 package com.poroshin.rut.ar.common.pdp.domain
 
 /**
- * Доп. инфо для AR. Поле может отсутствовать (null) в продукте.
+ * Additional info for AR. Field may be absent (null) in product.
  */
 data class ArInfo(
     val version: Int?,
     val arType: ArType,
-    val arRecourceUrl: String,
+    val placement: ArPlacement,
+    val arResourceUrl: String,
+    val width: Float, // In millimeters
+    val height: Float,
+    val depth: Float? = null
 )
 
 enum class ArType { OBJECT, FLOOR, WALL }
 
+enum class ArPlacement {
+    FLOOR,
+    CEILING,
+    ANY_HORIZONTAL,
+    ANY_VERTICAL,
+    ANY_SURFACE
+}
+
 enum class OsType { ANDROID, IOS }
 
 /**
- * Расширенная модель продукта для PDP.
- * Содержит больше информации, чем PLP Product.
+ * Extended product model for PDP.
+ * Contains more information than PLP Product.
  */
 data class ProductPageInfo(
     val sku: Long,
@@ -33,7 +45,7 @@ data class ProductPageInfo(
 )
 
 /**
- * Параметры для получения PDP.
+ * Parameters for getting PDP.
  */
 data class GetPdpParams(val sku: Long)
 

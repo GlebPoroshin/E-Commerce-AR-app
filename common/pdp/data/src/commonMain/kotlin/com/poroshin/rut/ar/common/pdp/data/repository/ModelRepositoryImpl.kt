@@ -18,6 +18,11 @@ class ModelRepositoryImpl(
         localModelDataSource.saveModelVersion(sku, version)
     }
 
+    override suspend fun deleteModel(sku: Long, path: Path) {
+        localModelDataSource.deleteModelFile(path)
+        localModelDataSource.removeModelVersion(sku)
+    }
+
     override suspend fun downLoadModel(
         sku: Long,
         path: Path,
@@ -29,5 +34,9 @@ class ModelRepositoryImpl(
             dest = path,
             onProgress = onProgress,
         )
+    }
+
+    override suspend fun isModelFileExists(path: Path): Boolean {
+        return localModelDataSource.isModelFileExists(path)
     }
 }
