@@ -1,0 +1,325 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.5.2 Chrome/142.0.7444.265 Electron/39.6.1 Safari/537.36" version="29.5.2" pages="3">
+  <diagram name="UML Core" id="lab2-core">
+    <mxGraphModel dx="1645" dy="1221" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p1-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;UML Core Domain - PDP AR Flow&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Блок 3. Ключевой сценарий: карточка товара - кэш 3D-модели - запуск AR - синхронизация корзины&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="1500" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-note" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;b&gt;Смысл сценария&lt;/b&gt;&lt;div&gt;Пользователь открывает PDP, приложение загружает ProductPageInfo, проверяет локальный кэш 3D-модели, при необходимости скачивает файл, затем формирует одноразовое действие OpenArObject и одновременно поддерживает количество товара в локальной корзине.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="85" width="1640" x="40" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-bg-left" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="780" width="360" x="40" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-bg-center" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F0D9;strokeColor=#82B366;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="1030" width="610" x="430" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-bg-right" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4D6;strokeColor=#D79B00;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="800" width="470" x="1120" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-left-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Presentation / Orchestration&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="320" x="60" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-center-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Use Case Contracts&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="320" x="450" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-right-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Domain Data&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="320" x="1140" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-vm" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;PdpViewModel&lt;/b&gt;&lt;div&gt;sku: Long?&lt;/div&gt;&lt;div&gt;quantityJob: Job?&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ handleEvent(event: PdpEvent): Unit&lt;/div&gt;&lt;div&gt;+ load(sku: Long): Unit&lt;/div&gt;&lt;div&gt;+ loadModel(state: PdpState.Content): Unit&lt;/div&gt;&lt;div&gt;+ checkModel(sku: Long): Unit&lt;/div&gt;&lt;div&gt;+ deleteModel(sku: Long): Unit&lt;/div&gt;&lt;div&gt;+ addToCart(snapshot: CartItemSnapshot): Unit&lt;/div&gt;&lt;div&gt;+ decrementCart(sku: Long): Unit&lt;/div&gt;" vertex="1">
+          <mxGeometry height="230" width="260" x="90" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-action" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;PdpAction.OpenArObject&lt;/b&gt;&lt;div&gt;filePath: Path&lt;/div&gt;&lt;div&gt;width: Float&lt;/div&gt;&lt;div&gt;height: Float&lt;/div&gt;&lt;div&gt;depth: Float&lt;/div&gt;&lt;div&gt;placement: ArPlacement&lt;/div&gt;&lt;div&gt;cartSnapshot: CartItemSnapshot?&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="260" x="90" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-uc1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;GetProductPageInfoUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(params: PdpParams): ProductPageInfo&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="290" x="550" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-uc2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;CheckModelExistsUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(sku: Long): Boolean&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="290" x="550" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-uc3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;DownloadProductModelUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(sku: Long, url: String, version: Int, onProgress: Progress): Path&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="290" x="550" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-uc5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;ObserveSkuQuantityUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(sku: Long): Flow&amp;lt;Int&amp;gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="290" x="540" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-uc7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;DecrementCartItemUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(sku: Long): Unit&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="290" x="540" y="1100" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-param" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;PdpParams&lt;/b&gt;&lt;div&gt;sku: Long&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="220" x="1220" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-product" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;ProductPageInfo&lt;/b&gt;&lt;div&gt;sku: Long&lt;/div&gt;&lt;div&gt;name: String&lt;/div&gt;&lt;div&gt;description: String&lt;/div&gt;&lt;div&gt;price: String&lt;/div&gt;&lt;div&gt;images: List&amp;lt;String&amp;gt;&lt;/div&gt;&lt;div&gt;discount: Int?&lt;/div&gt;&lt;div&gt;rating: Double&lt;/div&gt;&lt;div&gt;characteristics: Map&amp;lt;String, String&amp;gt;&lt;/div&gt;&lt;div&gt;stock: Int?&lt;/div&gt;&lt;div&gt;deliveryInfo: String?&lt;/div&gt;&lt;div&gt;ar: ArInfo?&lt;/div&gt;" vertex="1">
+          <mxGeometry height="230" width="260" x="1230" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-arinfo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;ArInfo&lt;/b&gt;&lt;div&gt;version: Int?&lt;/div&gt;&lt;div&gt;arType: ArType&lt;/div&gt;&lt;div&gt;placement: ArPlacement&lt;/div&gt;&lt;div&gt;arResourceUrl: String&lt;/div&gt;&lt;div&gt;width: Float&lt;/div&gt;&lt;div&gt;height: Float&lt;/div&gt;&lt;div&gt;depth: Float?&lt;/div&gt;" vertex="1">
+          <mxGeometry height="170" width="220" x="1250" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-r1" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="p1-uc1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-r8" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p1-action" value="sendAction()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-r9" edge="1" parent="1" source="p1-uc1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="p1-param" value="input">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-r10" edge="1" parent="1" source="p1-uc1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" target="p1-product" value="result">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-r11" edge="1" parent="1" source="p1-product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=diamondThin;startFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p1-arinfo" value="0..1 ar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-uc4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;DeleteProductModelUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(sku: Long): Unit&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="290" x="550" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="serBBYkRU-GZBfdQHNlu-5" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="p1-uc3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="410" y="421" as="sourcePoint" />
+            <mxPoint x="525" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="serBBYkRU-GZBfdQHNlu-6" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="p1-uc4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="395" as="sourcePoint" />
+            <mxPoint x="490" y="515" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="serBBYkRU-GZBfdQHNlu-7" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="p1-uc2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="395" as="sourcePoint" />
+            <mxPoint x="490" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="serBBYkRU-GZBfdQHNlu-8" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="p1-uc5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="443" />
+              <mxPoint x="450" y="910" />
+            </Array>
+            <mxPoint x="360" y="338" as="sourcePoint" />
+            <mxPoint x="560" y="335" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="jewCJEi3PmIcHyGOJgXn-1" edge="1" parent="1" source="p1-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" target="p1-uc6" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="443" />
+              <mxPoint x="450" y="1030" />
+            </Array>
+            <mxPoint x="350" y="443" as="sourcePoint" />
+            <mxPoint x="860" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p1-uc6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;AddOrIncrementCartItemUseCase&lt;/b&gt;&lt;div&gt;(interface)&lt;/div&gt;&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;+ invoke(snapshot: CartItemSnapshot): Unit&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="290" x="540" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="jewCJEi3PmIcHyGOJgXn-2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="443" />
+              <mxPoint x="450" y="1140" />
+            </Array>
+            <mxPoint x="350" y="443" as="sourcePoint" />
+            <mxPoint x="540" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Scaled Architecture" id="lab2-scaled">
+    <mxGraphModel dx="2468" dy="1832" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="1250" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p2-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;Масштабирование Ядра: UI и Infrastructure&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Домашняя доработка к блоку 3: упрощенная модульная схема без перегруза внутренними стрелками&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="1900" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-note" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;b&gt;идея&lt;/b&gt;&lt;div&gt;На этой странице скрыты внутренние DataSource-классы. Показаны только границы слоев, контракты ядра и адаптеры, которые реализуют эти контракты.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="2200" x="40" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-bg-ui" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="980" width="420" x="40" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-bg-core" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F0D9;strokeColor=#82B366;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="980" width="850" x="500" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-bg-adapter" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4D6;strokeColor=#D79B00;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="980" width="520" x="1390" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-bg-ext" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#8C8496;arcSize=10;opacity=30;" vertex="1">
+          <mxGeometry height="980" width="500" x="1950" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-label-ui" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;UI / Platform&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="240" x="60" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-label-core" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Application / Core&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="320" x="570" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-label-adapter" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Infrastructure / Adapters&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="360" x="1410" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-label-ext" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;External Systems&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="280" x="1970" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-ui" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;PDP UI&lt;/b&gt;&lt;div&gt;PdpFragment + PdpScreen&lt;/div&gt;&lt;div&gt;Отправляет события пользователя и отображает PdpState, по action&#39;ам осуществляет действия (переходы)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="320" x="90" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-ar" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;AR Module&lt;/b&gt;&lt;div&gt;ARFragment&lt;/div&gt;&lt;div&gt;Получает ArObjectParams и управляет сценой дополненной реальности&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="320" x="90" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-vm" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;PdpViewModel&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="60" width="150" x="570" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-query" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Catalog Query Use Case&lt;/b&gt;&lt;div&gt;GetProductPageInfoUseCase&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="220" x="880" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-modeluc" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Model Cache Use Cases&lt;/b&gt;&lt;div&gt;CheckModelExistsUseCase&lt;/div&gt;&lt;div&gt;DownloadProductModelUseCase&lt;/div&gt;&lt;div&gt;DeleteProductModelUseCase&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="220" x="880" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-cartuc" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Cart Use Cases&lt;/b&gt;&lt;div&gt;ObserveSkuQuantityUseCase&lt;/div&gt;&lt;div&gt;AddOrIncrementCartItemUseCase&lt;/div&gt;&lt;div&gt;DecrementCartItemUseCase&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="220" x="535" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-modelrepo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;ModelRepository&lt;/b&gt;&lt;div&gt;(repository contract)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="180" x="900" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-cartrepo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;CartRepository&lt;/b&gt;&lt;div&gt;(repository contract)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="170" x="880" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-adapter-product" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Product API Adapter&lt;/b&gt;&lt;div&gt;GetProductPageInfoUseCaseImpl&lt;/div&gt;&lt;div&gt;Внутри использует HttpClient&lt;/div&gt;" vertex="1">
+          <mxGeometry height="85" width="230" x="1465" y="322.5" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-adapter-model" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Model Repository Adapter&lt;/b&gt;&lt;div&gt;ModelRepositoryImpl&lt;/div&gt;&lt;div&gt;Внутри: LocalModelDataSource, RemoteModelDataSource&lt;/div&gt;&lt;div&gt;Сохраняет и читает кэш 3D-моделей&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="370" x="1465" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-adapter-cart" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=2;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Cart Repository Adapter&lt;/b&gt;&lt;div&gt;CartRepositoryImpl&lt;/div&gt;&lt;div&gt;Хранит корзину и version metadata&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="230" x="1465" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8496;strokeColor=#736782;strokeWidth=2;fontColor=#FFFFFF;align=center;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Backend API&lt;/b&gt;&lt;div&gt;PDP payload&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="410" x="2010" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-cdn" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8496;strokeColor=#736782;strokeWidth=2;fontColor=#FFFFFF;align=center;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;CDN / Object Storage&lt;/b&gt;&lt;div&gt;3D models and images&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="410" x="2010" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8496;strokeColor=#736782;strokeWidth=2;fontColor=#FFFFFF;align=center;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;CartDatabase&lt;/b&gt;&lt;div&gt;SQLDelight&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="2010" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-settings" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8496;strokeColor=#736782;strokeWidth=2;fontColor=#FFFFFF;align=center;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;Settings&lt;/b&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="2230" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-fs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8496;strokeColor=#736782;strokeWidth=2;fontColor=#FFFFFF;align=center;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;SystemFileSystem&lt;/b&gt;&lt;div&gt;local model files&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="410" x="2060" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-arsdk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C8496;strokeColor=#736782;strokeWidth=2;fontColor=#FFFFFF;align=center;fontSize=13;fontFamily=Times New Roman;" value="&lt;b&gt;ARCore / ARKit&lt;/b&gt;&lt;div&gt;device AR services&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="410" x="2010" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r1" edge="1" parent="1" source="p2-ui" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-vm" value="events / state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r2" edge="1" parent="1" source="p2-ui" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-ar" value="Навигация с ArObjectParams">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r3" edge="1" parent="1" source="p2-ar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-arsdk" value="uses SDK">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="1030" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r4" edge="1" parent="1" source="p2-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="p2-query">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="820" y="380" />
+              <mxPoint x="820" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="p2-modeluc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="515" />
+            </Array>
+            <mxPoint x="680" y="410" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r6" edge="1" parent="1" source="p2-vm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-cartuc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="550" />
+              <mxPoint x="640" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r7" edge="1" parent="1" source="p2-modeluc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-modelrepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r8" edge="1" parent="1" source="p2-cartuc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-cartrepo">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="645" y="855" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r9" edge="1" parent="1" source="p2-adapter-product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=block;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="p2-query" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r10" edge="1" parent="1" source="p2-adapter-model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=block;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-modelrepo" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r11" edge="1" parent="1" source="p2-adapter-cart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=block;endFill=0;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-cartrepo" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r12" edge="1" parent="1" source="p2-adapter-product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-api" value="REST">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r13" edge="1" parent="1" source="p2-adapter-model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="p2-cdn" value="download 3D model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2-r14" edge="1" parent="1" source="p2-adapter-model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="p2-fs" value="read / write cache">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1835" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r15" edge="1" parent="1" source="p2-adapter-cart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-db" value="persist cart">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1853" y="855" />
+              <mxPoint x="1853" y="860" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2-r16" edge="1" parent="1" source="p2-adapter-cart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;fontFamily=Times New Roman;" target="p2-settings" value="Key/Value хранилище">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1580" y="780" />
+              <mxPoint x="2320" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Notes and Review" id="lab2-notes">
+    <mxGraphModel dx="1898" dy="1409" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1200" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p3-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 28px&quot;&gt;&lt;b&gt;Обоснование, Cross-Review и Definition of Done&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="1700" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p3-why" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E1F5E7;strokeColor=#82B366;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Обоснование архитектуры&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Для обеспечения слабой связности (loose coupling) в центре схемы оставлен PdpViewModel, который знает только контракты use case. ViewModel не создает HttpClient, репозитории, SQLDelight-таблицы или AR-фрагменты, а лишь оркестрирует сценарий: получает карточку товара, проверяет наличие 3D-модели, при необходимости инициирует загрузку, наблюдает количество в корзине и выпускает одноразовое действие OpenArObject. Благодаря этому бизнес-логика экрана не привязана к конкретной сети, БД и платформенному AR SDK.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Чтобы соблюсти принцип открытости/закрытости (OCP) и инверсию зависимостей (DIP), concrete-классы вынесены во внешний слой и направлены стрелками к интерфейсам. ModelRepositoryImpl и CartRepositoryImpl выступают плагинами, которые можно заменить другой реализацией хранения без изменения PdpViewModel. UI-модуль ограничен Fragment/Compose-слоем и объектом ArObjectParams: экран не ходит в файловую систему, БД и сеть напрямую. Такой подход также упрощает тестирование, потому что PdpViewModel можно проверять на заглушках use case без запуска ARCore, SQLDelight и HTTP-клиента.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Разделение cart-операций на отдельные use case вместо прямого доступа ViewModel к CartRepository поддерживает ISP: UI работает с узкими контрактами и не знает о лишних методах репозитория. Отдельное действие OpenArObject разрывает связь между состоянием PDP и навигацией в AR-модуль, поэтому ARFragment получает только те параметры, которые реально нужны для сцены.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="320" width="1740" x="40" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="p3-usage" parent="1" style="shape=note;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FCE4D6;strokeColor=#D79B00;align=left;spacingLeft=12;spacingRight=12;spacingTop=8;fontSize=14;fontFamily=Times New Roman;" value="&lt;font style=&quot;font-size: 18px&quot;&gt;&lt;b&gt;Как использовать в ПЗ&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;1. Страница UML Core подходит как основная диаграмма классов ключевого модуля для подраздела Core Domain.&lt;/div&gt;&lt;div&gt;2. Страница Scaled Architecture показывает, как к ядру подключаются UI и инфраструктурные адаптеры, и помогает объяснить Clean Architecture на материале проекта.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="1740" x="50" y="460" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
