@@ -32,7 +32,7 @@ android {
     namespace = "com.poroshin.rut.ar.common.cart.domain"
     compileSdk = 35
     defaultConfig {
-        minSdk = 24
+        minSdk = 28
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

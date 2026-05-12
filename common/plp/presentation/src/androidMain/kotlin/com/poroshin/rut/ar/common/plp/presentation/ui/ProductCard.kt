@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDecoration
@@ -41,6 +42,7 @@ fun ProductCard(
 ) {
 	Card(
 		modifier = modifier
+			.testTag("product_card")
 			.clickable { onProductClick(product.sku) },
 		shape = RoundedCornerShape(12.dp),
 		elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

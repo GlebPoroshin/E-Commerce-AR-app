@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: "../common/umbrella"
 
 SPEC CHECKSUMS:
-  umbrella: bdd736bbb4793ba8829d0a882a52321e53278fd0
+  umbrella: 34f61e12fb8b3cdaad916795d9f8082353efc1d1
 
 PODFILE CHECKSUM: 403ab7f2933d5a5357094dbaf3f99fa88c7c07e3
 

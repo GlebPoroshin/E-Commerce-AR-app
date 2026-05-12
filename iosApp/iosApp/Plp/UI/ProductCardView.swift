@@ -44,6 +44,7 @@ struct ProductCardView: View {
         .contentShape(Rectangle())
         .onTapGesture { onTap(product.sku) }
         .background(Color(uiColor: .secondarySystemBackground))
+        .accessibilityIdentifier("product_card_\(product.sku)")
     }
 }
 

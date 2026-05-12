@@ -40,27 +40,43 @@ import com.poroshin.rut.ar.common.ar.domain.ArScaleCalculator
 import com.poroshin.rut.ar.common.ar.domain.ArTelemetryEvent
 import com.poroshin.rut.ar.common.ar.domain.ArTrackingStatus
 import com.poroshin.rut.ar.common.ar.domain.ArValidationResult
+import com.poroshin.rut.ar.common.ar.domain.ArVector3
+import com.poroshin.rut.ar.common.ar.domain.model.ArPose
+import com.poroshin.rut.ar.common.ar.domain.usecase.PlaceModelUseCase
+import com.poroshin.rut.ar.common.ar.domain.result.PlacementResult
+import com.poroshin.rut.ar.common.ar.presentation.ArViewModel
+import com.poroshin.rut.ar.common.ar.presentation.model.ArEvent
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
 import com.poroshin.rut.ar.common.ar.presentation.toBundle
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     private lateinit var params: ArObjectParams
     private lateinit var controller: ArSceneController
 
+    private val viewModel: ArViewModel by lazy {
+        (requireParentFragment() as com.poroshin.rut.ar.common.ar.presentation.ARFragment).viewModel
+    }
+    private val placeModelUseCase: PlaceModelUseCase by inject()
+
     private var modelRenderable: ModelRenderable? = null
     private var gestureDetector: GestureDetector? = null
     private var draggingNode: TransformableNode? = null
-    private var singleMode: Boolean = true
     private var modelScale: Vector3 = Vector3.one()
     private var sceneStartedAtMs: Long = 0L
     private var firstPlacementAtMs: Long? = null
     private var placementRetries: Int = 0
     private var previousTrackingStatus: ArTrackingStatus? = null
+
+    private var peekTouchListener: Scene.OnPeekTouchListener? = null
+    private var lastDragHitTestMs: Long = 0L
+    private var lastDragTrackable: Plane? = null
+    private var lastDragPose: Pose? = null
 
     private val placedNodes = mutableListOf<TransformableNode>()
 
@@ -69,7 +85,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         controller = ViewModelProvider(requireParentFragment())[ArSceneController::class.java]
         val availability = ArCoreApk.getInstance().checkAvailability(context)
         if (!availability.isSupported) {
-            controller.reportError(ArSceneController.SceneError.ArNotAvailable)
+            viewModel.onEvent(ArEvent.ShowSceneError("ARCore недоступен на устройстве. Попробуйте обновить сервисы Google Play."))
         }
     }
 
@@ -87,8 +103,6 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        instructionsController.setEnabled(false)
-        instructionsController.setVisible(false)
 
         if (!validateModelDimensions()) {
             return
@@ -99,9 +113,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         placementRetries = 0
         previousTrackingStatus = null
 
-        singleMode = controller.singleMode.value
-
-        observeControllerCommands()
+        observeArViewModelState()
         setupGestureDetector()
         setupSceneListeners()
         loadModel(force = modelRenderable == null)
@@ -119,6 +131,9 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        peekTouchListener?.let { arSceneView.scene.removeOnPeekTouchListener(it) }
+        peekTouchListener = null
+        setOnTapArPlaneListener(null)
         draggingNode = null
         gestureDetector = null
     }
@@ -126,7 +141,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     override fun onCreateSessionConfig(session: Session): Config {
         return super.onCreateSessionConfig(session).apply {
             planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-            lightEstimationMode = Config.LightEstimationMode.DISABLED
+            lightEstimationMode = Config.LightEstimationMode.AMBIENT_INTENSITY
         }
     }
 
@@ -163,13 +178,12 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         }
     }
 
-    private fun observeControllerCommands() {
+    private fun observeArViewModelState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    controller.singleMode.collect { mode ->
-                        singleMode = mode
-                        if (mode && placedNodes.size > 1) {
+                    viewModel.viewState.collect { state ->
+                        if (state.isSingleMode && placedNodes.size > 1) {
                             val survivor = placedNodes.last()
                             val toRemove = placedNodes.dropLast(1)
                             toRemove.forEach { removeNode(it) }
@@ -179,13 +193,16 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
                     }
                 }
                 launch {
-                    controller.clearAllRequests.collect {
-                        clearAllNodes()
-                    }
-                }
-                launch {
-                    controller.reloadRequests.collect {
-                        reloadModel()
+                    viewModel.viewAction.collect { action ->
+                        when (action) {
+                            is com.poroshin.rut.ar.common.ar.presentation.model.ArAction.TriggerClearScene -> {
+                                clearAllNodes()
+                            }
+                            is com.poroshin.rut.ar.common.ar.presentation.model.ArAction.TriggerReloadModel -> {
+                                reloadModel()
+                            }
+                            else -> Unit
+                        }
                     }
                 }
             }
@@ -209,7 +226,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     }
 
     private fun setupSceneListeners() {
-        arSceneView.scene.addOnPeekTouchListener { hitTestResult, motionEvent ->
+        peekTouchListener = Scene.OnPeekTouchListener { hitTestResult, motionEvent ->
             transformationSystem.onTouch(hitTestResult, motionEvent)
             gestureDetector?.onTouchEvent(motionEvent)
 
@@ -222,24 +239,29 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
                 }
             }
         }
+        peekTouchListener?.let { arSceneView.scene.addOnPeekTouchListener(it) }
 
         setOnTapArPlaneListener { hit, plane, _ ->
             if (!planeMatchesPlacement(plane)) {
-                controller.reportError(ArSceneController.SceneError.PlaneNotAllowed)
+                viewModel.onEvent(ArEvent.ShowSceneError("Эта плоскость не подходит для размещения выбранного объекта."))
                 registerPlacementRetry(
                     event = ArTelemetryEvent.PlacementRejectedSurface,
                     details = "reason=plane_not_allowed",
                 )
                 return@setOnTapArPlaneListener
             }
-            placeModel(hit)
+            placeModel(hit, plane)
         }
     }
 
     private fun handleDrag(event: MotionEvent) {
         val node = draggingNode ?: return
-        val parentNode = node.parent as? AnchorNode ?: return
         if (event.pointerCount > 1) return
+
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastDragHitTestMs < 32L) return
+        lastDragHitTestMs = now
+
         val frame = arSceneView.arFrame ?: return
         val hits = frame.hitTest(event)
         for (result in hits) {
@@ -248,21 +270,23 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             if (!planeMatchesPlacement(trackable)) continue
 
             val targetPose = createClampedPose(result)
-            val previousPosition = parentNode.worldPosition
-            parentNode.worldPosition = Vector3(
+            val previousPosition = node.worldPosition
+            
+            node.worldPosition = Vector3(
                 targetPose.tx(),
                 targetPose.ty(),
                 targetPose.tz(),
             )
             if (hasIntersection(node, skip = node)) {
-                parentNode.worldPosition = previousPosition
-                controller.reportError(ArSceneController.SceneError.Collision)
+                node.worldPosition = previousPosition
+                viewModel.onEvent(ArEvent.ShowSceneError("Модели не должны пересекаться. Выберите другое место."))
                 registerPlacementRetry(
                     event = ArTelemetryEvent.PlacementRejectedCollision,
                     details = "reason=drag_collision",
                 )
             } else {
-                controller.reportError(null)
+                lastDragTrackable = trackable
+                lastDragPose = targetPose
                 Log.d(TAG, "Model moved to ${targetPose.translation.contentToString()}")
             }
             break
@@ -272,50 +296,84 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     private fun finalizeDrag() {
         val node = draggingNode ?: return
         val oldParent = node.parent as? AnchorNode ?: return
-        val session = arSceneView.session ?: return
+        
+        val trackable = lastDragTrackable
+        val pose = lastDragPose
 
-        val worldPosition = node.worldPosition
+        if (trackable == null || pose == null) {
+            snapNodeToPlane(node)
+            return
+        }
+
         val worldRotation = node.worldRotation
         val worldScale = node.worldScale
 
-        val newAnchor = session.createAnchor(
-            Pose.makeTranslation(
-                worldPosition.x,
-                worldPosition.y,
-                worldPosition.z,
-            )
-        )
+        val newAnchor = trackable.createAnchor(pose)
         val newParent = AnchorNode(newAnchor).apply {
             setParent(arSceneView.scene)
         }
 
         node.setParent(newParent)
-        node.worldPosition = worldPosition
+        snapNodeToPlane(node)
         node.worldRotation = worldRotation
         node.worldScale = worldScale
 
         oldParent.anchor?.detach()
         oldParent.setParent(null)
+
+        lastDragTrackable = null
+        lastDragPose = null
     }
 
-    private fun placeModel(hit: HitResult) {
+    private fun placeModel(hit: HitResult, plane: Plane) {
         if (!validateModelDimensions()) return
         val model = modelRenderable ?: run {
-            controller.reportError(ArSceneController.SceneError.ModelLoadingFailed)
+            viewModel.onEvent(ArEvent.ShowSceneError("Не удалось загрузить модель. Проверьте файл и попробуйте снова."))
             return
         }
 
-        if (singleMode && placedNodes.isNotEmpty()) {
-            placedNodes.toList().forEach { removeNode(it) }
-            placedNodes.clear()
-        }
         if (!singleMode && placedNodes.size >= MAX_ACTIVE_MODELS) {
-            controller.reportError(ArSceneController.SceneError.PlacementLimitReached)
+            viewModel.onEvent(ArEvent.ShowSceneError("Достигнут лимит объектов в сцене. Очистите сцену или включите режим одной модели."))
             logTelemetry(
                 event = ArTelemetryEvent.PlacementRejectedSurface,
                 details = "reason=placement_limit active=${placedNodes.size}",
             )
             return
+        }
+
+        val hitPose = hit.hitPose
+        val domainPose = ArPose(
+            translation = floatArrayOf(hitPose.tx(), hitPose.ty(), hitPose.tz()),
+            rotation = hitPose.rotationQuaternion,
+        )
+        val halfExtentsFromModel = extractHalfExtents()
+        val alreadyPlaced = buildAlreadyPlacedList()
+        val planeType = plane.toArPlaneType()
+
+        val placementResult = placeModelUseCase(
+            pose = domainPose,
+            halfExtents = halfExtentsFromModel,
+            alreadyPlaced = alreadyPlaced,
+            placement = params.placementPolicy,
+            planeType = planeType,
+            isSingleMode = singleMode,
+        )
+
+        when (placementResult) {
+            is PlacementResult.Rejected -> {
+                viewModel.onEvent(ArEvent.ShowSceneError(placementResult.reason))
+                registerPlacementRetry(
+                    event = ArTelemetryEvent.PlacementRejectedCollision,
+                    details = "reason=use_case_rejected",
+                )
+                return
+            }
+            is PlacementResult.Updated -> Unit
+        }
+
+        if (singleMode && placedNodes.isNotEmpty()) {
+            placedNodes.toList().forEach { removeNode(it) }
+            placedNodes.clear()
         }
 
         val anchor = createClampedAnchor(hit)
@@ -329,11 +387,12 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             renderable = model
             setParent(anchorNode)
             localScale = modelScale
+            snapNodeToPlane(this)
         }
 
         if (hasIntersection(node, skip = null)) {
             anchorNode.setParent(null)
-            controller.reportError(ArSceneController.SceneError.Collision)
+            viewModel.onEvent(ArEvent.ShowSceneError("Модели не должны пересекаться. Выберите другое место."))
             registerPlacementRetry(
                 event = ArTelemetryEvent.PlacementRejectedCollision,
                 details = "reason=place_collision",
@@ -342,7 +401,6 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         }
 
         placedNodes.add(node)
-        controller.reportError(null)
         controller.reportPlacedCount(placedNodes.size)
         if (firstPlacementAtMs == null) {
             firstPlacementAtMs = SystemClock.elapsedRealtime()
@@ -351,8 +409,44 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             event = ArTelemetryEvent.PlacementSuccess,
             details = "active=${placedNodes.size} ${performanceSnapshotDetails()}",
         )
+        viewModel.onEvent(ArEvent.PlaceObject(domainPose))
         node.select()
         Log.d(TAG, "Model placed at ${anchorPoseToString(anchor)}")
+    }
+
+    private val singleMode: Boolean
+        get() = viewModel.viewState.value.isSingleMode
+
+    private fun extractHalfExtents(): ArVector3 {
+        val shape = modelRenderable?.collisionShape as? Box
+        return if (shape != null) {
+            ArVector3(
+                x = shape.size.x * modelScale.x * 0.5f,
+                y = shape.size.y * modelScale.y * 0.5f,
+                z = shape.size.z * modelScale.z * 0.5f,
+            )
+        } else {
+            ArVector3(0f, 0f, 0f)
+        }
+    }
+
+    private fun buildAlreadyPlacedList(): List<Pair<ArPose, ArVector3>> {
+        return placedNodes.mapNotNull { node ->
+            val shape = node.collisionShape as? Box ?: return@mapNotNull null
+            val ws = node.worldScale
+            val wp = node.worldPosition
+            val wr = node.worldRotation
+            val pose = ArPose(
+                translation = floatArrayOf(wp.x, wp.y, wp.z),
+                rotation = floatArrayOf(wr.x, wr.y, wr.z, wr.w),
+            )
+            val halfExtents = ArVector3(
+                x = shape.size.x * ws.x * 0.5f,
+                y = shape.size.y * ws.y * 0.5f,
+                z = shape.size.z * ws.z * 0.5f,
+            )
+            pose to halfExtents
+        }
     }
 
     private fun hasIntersection(node: TransformableNode, skip: TransformableNode?): Boolean {
@@ -425,7 +519,6 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         }
         placedNodes.clear()
         controller.reportPlacedCount(0)
-        controller.reportError(null)
     }
 
     private fun removeNode(node: TransformableNode) {
@@ -476,11 +569,12 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         }
 
         val ratio = clampedDistance / distance
-        return Pose.makeTranslation(
+        val translation = floatArrayOf(
             camX + dx * ratio,
             camY + dy * ratio,
             camZ + dz * ratio,
         )
+        return Pose(translation, hitPose.rotationQuaternion)
     }
 
     private fun reloadModel() {
@@ -496,7 +590,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
         val file = File(params.filePath)
         if (!file.exists()) {
             controller.reportModelLoading(false)
-            controller.reportError(ArSceneController.SceneError.ModelLoadingFailed)
+            viewModel.onEvent(ArEvent.ShowSceneError("Не удалось загрузить модель. Проверьте файл и попробуйте снова."))
             return
         }
         val uri = Uri.fromFile(file)
@@ -511,12 +605,11 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
                 modelRenderable = renderable
                 updateModelScale(renderable)
                 controller.reportModelLoading(false)
-                controller.reportError(null)
             }
             .exceptionally { throwable ->
                 Log.e(TAG, "Failed to load renderable from ${file.absolutePath}", throwable)
                 controller.reportModelLoading(false)
-                controller.reportError(ArSceneController.SceneError.ModelLoadingFailed)
+                viewModel.onEvent(ArEvent.ShowSceneError("Не удалось загрузить модель. Проверьте файл и попробуйте снова."))
                 null
             }
     }
@@ -553,7 +646,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             ArValidationResult.Valid -> true
             is ArValidationResult.Invalid -> {
                 controller.reportModelLoading(false)
-                controller.reportError(ArSceneController.SceneError.InvalidDimensions)
+                viewModel.onEvent(ArEvent.ShowSceneError("Некорректные размеры модели. Проверьте width/height/depth и попробуйте снова."))
                 false
             }
         }
@@ -596,6 +689,16 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
             TAG,
             "telemetry event=${event.name} $details",
         )
+    }
+
+    private fun snapNodeToPlane(node: TransformableNode) {
+        val shape = node.renderable?.collisionShape as? Box
+        if (shape != null) {
+            val bottomY = (shape.center.y - shape.size.y * 0.5f) * node.localScale.y
+            node.localPosition = Vector3(0f, -bottomY, 0f)
+        } else {
+            node.localPosition = Vector3.zero()
+        }
     }
 
     private data class Aabb(

@@ -28,7 +28,7 @@ kotlin {
 android {
     namespace = "com.poroshin.rut.ar.common.mvi"
     compileSdk = 35
-    defaultConfig { minSdk = 24 }
+    defaultConfig { minSdk = 28 }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8

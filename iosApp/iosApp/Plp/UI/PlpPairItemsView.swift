@@ -102,6 +102,7 @@ struct PlpContentView: View {
                 }
             }
         }
+        .accessibilityIdentifier("plp_content_scroll")
     }
 }
 

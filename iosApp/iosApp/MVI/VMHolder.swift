@@ -16,15 +16,17 @@ import Foundation
 final class SharedVMHolder<State: AnyObject, Event: AnyObject, Action: AnyObject, VM: SharedViewModel<State, Event, Action>>: ObservableObject {
     let viewModel: VM
     @Published private(set) var state: State
-    private var disposableHandle: Kotlinx_coroutines_coreDisposableHandle?
-    
+    /// Hold every bind() handle so concurrent subscribers (e.g. screen + coordinator)
+    /// can attach independently and all get disposed on stop()/deinit.
+    private var disposableHandles: [Kotlinx_coroutines_coreDisposableHandle] = []
+
     init(viewModel: VM, initialState: State) {
         self.viewModel = viewModel
         self.state = initialState
     }
-    
+
     func start(onAction: @escaping (Action) -> Void = { _ in }) {
-        disposableHandle = FlowWatchUtilsKt.bind(
+        let handle = FlowWatchUtilsKt.bind(
             state: viewModel.viewState,
             onState: { [weak self] newState in
                 if let typedState = newState as? State {
@@ -40,17 +42,18 @@ final class SharedVMHolder<State: AnyObject, Event: AnyObject, Action: AnyObject
                 }
             }
         )
+        disposableHandles.append(handle)
     }
-    
+
     func sendEvent(_ event: Event) {
         viewModel.onEvent(event: event)
     }
-    
+
     func stop() {
-        disposableHandle?.dispose()
-        disposableHandle = nil
+        disposableHandles.forEach { $0.dispose() }
+        disposableHandles.removeAll()
     }
-    
+
     deinit {
         stop()
     }

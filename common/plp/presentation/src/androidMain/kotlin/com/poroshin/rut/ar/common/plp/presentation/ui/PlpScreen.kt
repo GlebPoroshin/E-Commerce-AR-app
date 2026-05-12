@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.poroshin.rut.ar.common.plp.presentation.PlpViewModel
@@ -34,6 +35,7 @@ fun PlpScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .testTag("plp_screen")
     ) {
         when(val viewState = state) {
             is PlpState.Content -> {
@@ -64,7 +66,9 @@ private fun PlpContent(
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("plp_content_list")
     ) {
         itemsIndexed(state.items.chunked(2)) { _, pair ->
             val left = pair.getOrNull(0)

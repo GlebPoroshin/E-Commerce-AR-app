@@ -20,8 +20,10 @@ class GetPlpProductsUseCaseImpl(
             val response: List<PlpProductDto> = httpClient.get("${BackendConfig.apiBaseUrl()}/plp") {
                 page?.let { parameter("page", it) }
             }.body()
+            println("Backend Success: PLP fetched ${response.size} products from ${BackendConfig.apiBaseUrl()}")
             response.map { it.toDomain() }
         }.getOrElse {
+            println("Backend Error: PLP fetch failed - ${it.message}")
             if (BackendConfig.isMockFallbackEnabled()) {
                 mockProducts()
             } else {

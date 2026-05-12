@@ -7,3 +7,13 @@ plugins {
     alias(libs.plugins.kotlinCocoapods).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
 }
+
+subprojects {
+    plugins.withId("com.android.library") {
+        extensions.configure<com.android.build.gradle.LibraryExtension> {
+            lint {
+                disable += "NullSafeMutableLiveData"
+            }
+        }
+    }
+}

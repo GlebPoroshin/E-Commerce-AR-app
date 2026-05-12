@@ -28,6 +28,9 @@ struct ARViewContainer: UIViewRepresentable {
     var showGuidance: Bool = true
     var isSingleMode: Bool = true
 
+    /// MVI holder — Coordinator forwards all gestures through it and subscribes to actions.
+    let arHolder: SharedVMHolder<ArState, ArEvent, ArAction, ArViewModel>
+
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero)
 
@@ -54,7 +57,8 @@ struct ARViewContainer: UIViewRepresentable {
             singleMode:      isSingleMode,
             filePath:        filePath,
             placement:       placement,
-            preloadedModel:  preloadedModel
+            preloadedModel:  preloadedModel,
+            arHolder:        arHolder
         )
     }
 
@@ -93,6 +97,7 @@ struct ARViewContainer: UIViewRepresentable {
         private var guidanceLabel: UILabel?
         private var coachingOverlay: ARCoachingOverlayView?
         private var trackingStatus: ArTrackingStatus = .searchingsurface
+        private var lightAnchor: AnchorEntity?
 
         // Loading
         private var loadCancellable: AnyCancellable?
@@ -109,6 +114,10 @@ struct ARViewContainer: UIViewRepresentable {
         let filePath: String
         let placement: ArPlacement
         private var preloadedModel: ModelEntity?
+
+        // MVI
+        private let arHolder: SharedVMHolder<ArState, ArEvent, ArAction, ArViewModel>
+        private let placeModelUseCase: PlaceModelUseCase
 
         // Safe placement distance range (meters)
         private let minPlaceDistance: Float = 0.35
@@ -141,7 +150,8 @@ struct ARViewContainer: UIViewRepresentable {
              singleMode: Bool,
              filePath: String,
              placement: ArPlacement,
-             preloadedModel: ModelEntity?)
+             preloadedModel: ModelEntity?,
+             arHolder: SharedVMHolder<ArState, ArEvent, ArAction, ArViewModel>)
         {
             let minDimension: Float = 1.0
             self.hasValidModelDimensions = rawModelSizeMm.x.isFinite &&
@@ -158,7 +168,13 @@ struct ARViewContainer: UIViewRepresentable {
             self.filePath        = filePath
             self.placement       = placement
             self.preloadedModel  = preloadedModel
+            self.arHolder        = arHolder
+            self.placeModelUseCase = PlaceModelUseCase()
             super.init()
+
+            // Subscribe once per coordinator lifecycle — setup(on:) is re-called from
+            // requestReset(), so action binding must live outside of it to avoid leaks.
+            subscribeToArActions()
         }
 
         // MARK: Setup
@@ -206,7 +222,9 @@ struct ARViewContainer: UIViewRepresentable {
             setupGuidanceLabel(in: arView)
             setupCoachingOverlay(in: arView)
             if !hasValidModelDimensions {
-                updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+                let msg = "Invalid model size. Check width, height and depth"
+                updateGuidanceLabel(text: msg)
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
             } else if let frame = arView.session.currentFrame {
                 applyTrackingStatus(mapTrackingStatus(frame.camera.trackingState))
             }
@@ -215,6 +233,29 @@ struct ARViewContainer: UIViewRepresentable {
             installGesturesIfNeeded(on: arView)
         }
 
+        /// Subscribe to ArAction stream so Coordinator reacts to ViewModel commands.
+        private func subscribeToArActions() {
+            arHolder.start { [weak self] action in
+                guard let self = self else { return }
+                switch action {
+                case _ as ArAction.TriggerClearScene:
+                    self.clearAllPlaced()
+                    self.resetHandler()
+                case _ as ArAction.TriggerReloadModel:
+                    if let anchor = self.modelAnchor, let view = self.arView {
+                        self.loadAndConfigureModel(into: anchor, in: view)
+                    }
+                case let showErr as ArAction.ShowError:
+                    self.updateGuidanceLabel(text: showErr.message)
+                case _ as ArAction.NavigateBack:
+                    break
+                case let telemetry as ArAction.LogTelemetry:
+                    self.logTelemetryAction(name: telemetry.name, params: telemetry.params)
+                default:
+                    break
+                }
+            }
+        }
 
         func updateGuidance(_ show: Bool) {
             showGuidance = show
@@ -242,6 +283,7 @@ struct ARViewContainer: UIViewRepresentable {
             view.scene.anchors.removeAll()
             modelAnchor = nil
             modelEntity = nil
+            lightAnchor = nil
             placedAnchors.removeAll()
             placedEntities.removeAll()
 
@@ -264,6 +306,9 @@ struct ARViewContainer: UIViewRepresentable {
 
             let long = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
             long.minimumPressDuration = 0.25
+            // Default 10pt is too tight: finger jitter during the 250 ms hold cancels the press
+            // and drag never engages. Loosen it so the long-press qualifies reliably.
+            long.allowableMovement = 50
             long.delegate = self
             arView.addGestureRecognizer(long)
             longGR = long
@@ -289,7 +334,9 @@ struct ARViewContainer: UIViewRepresentable {
         @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView else { return }
             guard hasValidModelDimensions else {
-                updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+                let msg = "Invalid model size. Check width, height and depth"
+                updateGuidanceLabel(text: msg)
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 return
             }
             guard trackingIsReliable() else {
@@ -300,12 +347,121 @@ struct ARViewContainer: UIViewRepresentable {
             let pt = gesture.location(in: arView)
 
             guard let hit = findPlacementHit(at: pt, in: arView) else {
-                updateGuidanceLabel(text: "Surface not found. Try different angle/lighting")
+                let msg = "Surface not found. Try different angle/lighting"
+                updateGuidanceLabel(text: msg)
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 registerPlacementRetry(event: .placementrejectedsurface, details: "reason=no_plane_match")
                 return
             }
 
             placeOrMoveModel(using: hit.result, alignment: hit.alignment, in: arView)
+        }
+
+        /// Build a KotlinFloatArray from a Swift Float array literal.
+        private func floatArray(_ values: [Float]) -> KotlinFloatArray {
+            let arr = KotlinFloatArray(size: Int32(values.count))
+            for (i, v) in values.enumerated() {
+                arr.set(index: Int32(i), value: v)
+            }
+            return arr
+        }
+
+        /// Validate placement with PlaceModelUseCase and route result through ArViewModel.
+        private func validateAndCommitPlacement(
+            using result: ARRaycastResult,
+            alignment: ARRaycastQuery.TargetAlignment,
+            in arView: ARView
+        ) -> Bool {
+            guard let entity = modelEntity else { return true }
+
+            let t = result.worldTransform
+            let tx = t.columns.3.x
+            let ty = t.columns.3.y
+            let tz = t.columns.3.z
+
+            // Extract quaternion from transform matrix
+            let q = simd_quatf(result.worldTransform)
+            let domainPose = ArPose(
+                translation: floatArray([tx, ty, tz]),
+                rotation: floatArray([q.vector.x, q.vector.y, q.vector.z, q.vector.w])
+            )
+
+            // Half-extents from current model entity bounds
+            let halfExtents: ArVector3
+            if let bounds = worldAabb(for: entity) {
+                halfExtents = ArVector3(
+                    x: bounds.halfExtents.x,
+                    y: bounds.halfExtents.y,
+                    z: bounds.halfExtents.z
+                )
+            } else {
+                halfExtents = ArVector3(x: 0, y: 0, z: 0)
+            }
+
+            // Already placed list
+            let alreadyPlaced: [KotlinPair<ArPose, ArVector3>] = placedEntities.compactMap { other in
+                guard other !== entity else { return nil }
+                guard let otherBounds = worldAabb(for: other) else { return nil }
+                let wp = other.position(relativeTo: nil)
+                let wq = simd_quatf(other.transformMatrix(relativeTo: nil))
+                let pose = ArPose(
+                    translation: floatArray([wp.x, wp.y, wp.z]),
+                    rotation: floatArray([wq.vector.x, wq.vector.y, wq.vector.z, wq.vector.w])
+                )
+                let he = ArVector3(
+                    x: otherBounds.halfExtents.x,
+                    y: otherBounds.halfExtents.y,
+                    z: otherBounds.halfExtents.z
+                )
+                return KotlinPair(first: pose, second: he)
+            }
+
+            // Map iOS alignment to domain plane type
+            let planeType = mapAlignmentToPlaneType(alignment, result: result, in: arView)
+
+            let placementResult = placeModelUseCase.invoke(
+                pose: domainPose,
+                halfExtents: halfExtents,
+                alreadyPlaced: alreadyPlaced,
+                placement: placement,
+                planeType: planeType,
+                isSingleMode: isSingleMode
+            )
+
+            if let updated = placementResult as? PlacementResult.Updated {
+                arHolder.sendEvent(ArEvent.PlaceObject(pose: updated.pose))
+                return true
+            } else if let rejected = placementResult as? PlacementResult.Rejected {
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: rejected.reason))
+                return false
+            }
+            return true
+        }
+
+        private func mapAlignmentToPlaneType(
+            _ alignment: ARRaycastQuery.TargetAlignment,
+            result: ARRaycastResult,
+            in arView: ARView
+        ) -> ArPlaneType {
+            switch alignment {
+            case .vertical:
+                return ArPlaneType.vertical
+            case .horizontal:
+                // Distinguish floor (upward) from ceiling (downward) by camera position
+                if let anchor = result.anchor as? ARPlaneAnchor {
+                    if anchor.classification == .ceiling {
+                        return ArPlaneType.horizontaldownward
+                    }
+                    if anchor.classification == .floor {
+                        return ArPlaneType.horizontalupward
+                    }
+                }
+                let hitY = result.worldTransform.columns.3.y
+                let cameraY = arView.session.currentFrame?.camera.transform.columns.3.y ?? hitY
+                return hitY <= (cameraY + 0.15) ? ArPlaneType.horizontalupward : ArPlaneType.horizontaldownward
+            @unknown default:
+                return ArPlaneType.horizontalupward
+            }
         }
 
         private func placeOrMoveModel(
@@ -314,7 +470,9 @@ struct ARViewContainer: UIViewRepresentable {
             in arView: ARView,
         ) {
             if !isSingleMode && placedEntities.count >= maxPlacedEntities {
-                updateGuidanceLabel(text: "Scene limit reached. Clear scene or switch to single mode")
+                let msg = "Scene limit reached. Clear scene or switch to single mode"
+                updateGuidanceLabel(text: msg)
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 logTelemetry(
                     event: .placementrejectedsurface,
                     details: "reason=placement_limit active=\(placedEntities.count) \(performanceSnapshotDetails())"
@@ -330,16 +488,23 @@ struct ARViewContainer: UIViewRepresentable {
 
             if isSingleMode, let anchor = modelAnchor, let entity = modelEntity {
                 let originalScale = entity.scale
+
+                // Run domain validation before committing move
+                guard validateAndCommitPlacement(using: result, alignment: alignment, in: arView) else {
+                    registerPlacementRetry(event: .placementrejectedcollision, details: "reason=move_rejected")
+                    return
+                }
+
                 // Reuse existing anchor → smooth move
                 anchor.move(to: Transform(matrix: clamped), relativeTo: nil, duration: 0.06, timingFunction: .easeInOut)
-                
+
                 if let e = self.modelEntity,
                    let v = self.arView,
                    self.placementAlignment == .horizontal
                 {
                     self.groundRaycastSnap(e, in: v, alignment: self.placementAlignment)
                 }
-                
+
                 // After moving – realign orientation and keep contact with the plane
                 alignEntityToPlane(entity, with: clamped)
                 snapEntityToPlane(entity, relativeTo: anchor)
@@ -388,55 +553,44 @@ struct ARViewContainer: UIViewRepresentable {
         }
 
         @objc private func handleDrag(_ gesture: UIPanGestureRecognizer) {
-            guard let arView = arView,
-                  let entity = modelEntity,
-                  let anchor = entity.anchor else { return }
-
+            guard let arView = arView else { return }
             let loc = gesture.location(in: arView)
+
+            // If long-press was cancelled by early finger movement we may not have a model yet —
+            // try to grab one under the finger so the drag still engages.
+            if modelEntity == nil, gesture.state == .began {
+                modelEntity = arView.entity(at: loc) as? ModelEntity
+            }
+            guard let entity = modelEntity, let anchor = entity.anchor else { return }
 
             switch gesture.state {
             case .began:
-                guard trackingIsReliable() else { return }
-                // trackedRaycast on locked plane alignment (prevents jumping between wall/floor)
-                if let q = arView.makeRaycastQuery(from: loc, allowing: .existingPlaneGeometry, alignment: placementAlignment) {
-                    dragRaycast = arView.session.trackedRaycast(q) { [weak self] results in
-                        guard let self = self, let arView = self.arView, let hit = results.first else { return }
-                        let t = self.clampedTransform(for: hit, in: arView)
-                        let previousTransform = anchor.transform
-                        anchor.move(to: Transform(matrix: t), relativeTo: nil, duration: 0.03, timingFunction: .linear)
-                        // Maintain orientation and plane contact while moving
-                        self.alignEntityToPlane(entity, with: t)
-                        self.snapEntityToPlane(entity, relativeTo: anchor)
-                        if self.hasIntersectionWithPlacedEntities(entity) {
-                            anchor.transform = previousTransform
-                            self.updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
-                            self.registerPlacementRetry(
-                                event: .placementrejectedcollision,
-                                details: "reason=drag_collision"
-                            )
-                        } else {
-                            self.updateGuidanceLabel(text: "Long press + drag for precise adjustment")
-                        }
-                    }
-                }
+                // Drop any stale tracked raycast — drag is now driven by per-frame raycasts.
+                dragRaycast?.stopTracking(); dragRaycast = nil
             case .changed:
-                if dragRaycast == nil,
-                   let hit = arView.raycast(from: loc, allowing: .estimatedPlane, alignment: placementAlignment).first {
-                    let t = clampedTransform(for: hit, in: arView)
-                    let previousTransform = anchor.transform
-                    anchor.move(to: Transform(matrix: t), relativeTo: nil, duration: 0.03, timingFunction: .linear)
-                    alignEntityToPlane(entity, with: t)
-                    snapEntityToPlane(entity, relativeTo: anchor)
-                    if hasIntersectionWithPlacedEntities(entity) {
-                        anchor.transform = previousTransform
-                        updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
-                        registerPlacementRetry(
-                            event: .placementrejectedcollision,
-                            details: "reason=drag_collision"
-                        )
-                    } else {
-                        updateGuidanceLabel(text: "Long press + drag for precise adjustment")
-                    }
+                guard trackingIsReliable() else { return }
+                // Fresh raycast from the current finger position — fixes the "stuck" drag where
+                // an ARTrackedRaycast from .began locked the screen-space origin.
+                let primary = arView.raycast(from: loc, allowing: .existingPlaneGeometry, alignment: placementAlignment).first
+                let hit = primary ?? arView.raycast(from: loc, allowing: .estimatedPlane, alignment: placementAlignment).first
+                guard let h = hit else { return }
+
+                let t = clampedTransform(for: h, in: arView)
+                let previousTransform = anchor.transform
+                anchor.move(to: Transform(matrix: t), relativeTo: nil, duration: 0.03, timingFunction: .linear)
+                alignEntityToPlane(entity, with: t)
+                snapEntityToPlane(entity, relativeTo: anchor)
+                if hasIntersectionWithPlacedEntities(entity) {
+                    anchor.transform = previousTransform
+                    let msg = "Models should not intersect. Choose another surface"
+                    updateGuidanceLabel(text: msg)
+                    arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
+                    registerPlacementRetry(
+                        event: .placementrejectedcollision,
+                        details: "reason=drag_collision"
+                    )
+                } else {
+                    updateGuidanceLabel(text: "Long press + drag for precise adjustment")
                 }
             case .ended, .cancelled, .failed:
                 dragRaycast?.stopTracking(); dragRaycast = nil
@@ -448,7 +602,9 @@ struct ARViewContainer: UIViewRepresentable {
 
         private func loadAndConfigureModel(into anchor: AnchorEntity, in arView: ARView) {
             guard hasValidModelDimensions else {
-                updateGuidanceLabel(text: "Invalid model size. Check width, height and depth")
+                let msg = "Invalid model size. Check width, height and depth"
+                updateGuidanceLabel(text: msg)
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 removeAnchor(anchor)
                 return
             }
@@ -468,7 +624,9 @@ struct ARViewContainer: UIViewRepresentable {
                 .sink(receiveCompletion: { [weak self] completion in
                     guard let self = self else { return }
                     if case .failure(let error) = completion {
-                        self.updateGuidanceLabel(text: "Loading error: \(error.localizedDescription)")
+                        let msg = "Loading error: \(error.localizedDescription)"
+                        self.updateGuidanceLabel(text: msg)
+                        self.arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                     }
                 }, receiveValue: { [weak self] entity in
                     guard let self = self else { return }
@@ -482,6 +640,17 @@ struct ARViewContainer: UIViewRepresentable {
             entity.transform = .identity
             // Add first so bounds are computed in anchor space
             anchor.addChild(entity)
+
+            // Contact shadow:
+            //   - iOS 18+: GroundingShadowComponent renders a soft shadow on the AR plane,
+            //     so it works even without LiDAR scene reconstruction.
+            //   - iOS 16-17: fall back to a DirectionalLight with castsShadow.
+            //     That requires a LiDAR-reconstructed mesh to receive the shadow.
+            if #available(iOS 18.0, *) {
+                entity.components.set(GroundingShadowComponent(castsShadow: true))
+            } else {
+                addSunLightIfNeeded(to: arView)
+            }
 
             // Collision shapes (for gestures/physics) + interaction with scene-understanding mesh
             entity.generateCollisionShapes(recursive: true)
@@ -509,7 +678,9 @@ struct ARViewContainer: UIViewRepresentable {
             arView.installGestures([.rotation], for: entity)
 
             if hasIntersectionWithPlacedEntities(entity) {
-                updateGuidanceLabel(text: "Models should not intersect. Choose another surface")
+                let msg = "Models should not intersect. Choose another surface"
+                updateGuidanceLabel(text: msg)
+                arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 registerPlacementRetry(
                     event: .placementrejectedcollision,
                     details: "reason=place_collision"
@@ -601,7 +772,7 @@ struct ARViewContainer: UIViewRepresentable {
             let sz = targetMeters.z / max(size0.z, 1e-3)
 
             if uniform {
-                let candidate = (sx + sy + sz) / 3.0
+                let candidate = min(sx, min(sy, sz))
                 let s = max(minScale, min(maxScale, candidate))
                 entity.scale = M3(repeating: s)
             } else {
@@ -637,7 +808,7 @@ struct ARViewContainer: UIViewRepresentable {
                 let q = simd_quatf(angle: angle, axis: axis)
                 entity.orientation = q * entity.orientation
             }
-            // For vertical planes you can additionally force the “back” face toward the normal if needed.
+            // For vertical planes you can additionally force the "back" face toward the normal if needed.
         }
 
         // MARK: Raycast helpers
@@ -831,6 +1002,11 @@ struct ARViewContainer: UIViewRepresentable {
             print("ARTelemetry event=\(event.name) \(details)")
         }
 
+        private func logTelemetryAction(name: String, params: [String: String]) {
+            let paramsStr = params.map { "\($0.key)=\($0.value)" }.joined(separator: " ")
+            print("ARTelemetry name=\(name) \(paramsStr)")
+        }
+
         // MARK: Placement bookkeeping
 
         private func collapseToSingleIfNeeded() {
@@ -903,6 +1079,25 @@ struct ARViewContainer: UIViewRepresentable {
             guidanceLabel?.text = text
         }
 
+        /// Fallback shadow source for iOS 16-17 where GroundingShadowComponent isn't available.
+        /// Real shadow only renders on LiDAR-reconstructed mesh; on non-LiDAR devices there's
+        /// no receiving surface, so the model will look flat.
+        private func addSunLightIfNeeded(to arView: ARView) {
+            guard lightAnchor == nil else { return }
+
+            let sun = DirectionalLight()
+            sun.light.color = .white
+            sun.light.intensity = 20_000
+            sun.shadow = DirectionalLightComponent.Shadow(maximumDistance: 6, depthBias: 1e-4)
+
+            let anchor = AnchorEntity(world: .init(1))
+            sun.position = [0, 2.5, 0]
+            sun.look(at: .zero, from: sun.position, relativeTo: anchor)
+            anchor.addChild(sun)
+            arView.scene.addAnchor(anchor)
+            lightAnchor = anchor
+        }
+
         private func setupCoachingOverlay(in arView: ARView) {
             let overlay = ARCoachingOverlayView()
             overlay.session = arView.session
@@ -920,7 +1115,7 @@ struct ARViewContainer: UIViewRepresentable {
             arView.addSubview(overlay)
             coachingOverlay = overlay
         }
-        
+
         /// Hard snap model to plane below (floor/wall), considering its real bottom.
         private func groundRaycastSnap(_ entity: ModelEntity,
                                        in arView: ARView,

@@ -40,6 +40,7 @@ kotlin {
             implementation(libs.androidx.fragment)
             implementation(libs.google.arcore)
             implementation(libs.sceneform)
+            implementation(libs.koin.android)
             implementation(projects.common.cart.domain)
             implementation(projects.common.cart.presentation)
         }
@@ -50,7 +51,7 @@ android {
     namespace = "com.poroshin.rut.ar.common.ar.presentation"
     compileSdk = 35
     defaultConfig {
-        minSdk = 24
+        minSdk = 28
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

@@ -27,9 +27,11 @@ class GetProductPageInfoUseCaseImpl(
             val response: ProductPageInfoDto = httpClient.get("${BackendConfig.apiBaseUrl()}/pdp/${params.sku}") {
                 parameter("osType", currentOs().name)
             }.body()
-
+            
+            println("Backend Success: PDP fetched product ${params.sku} from ${BackendConfig.apiBaseUrl()}")
             response.toDomain()
         }.getOrElse {
+            println("Backend Error: PDP fetch failed for sku ${params.sku} - ${it.message}")
             if (BackendConfig.isMockFallbackEnabled()) {
                 mockProduct(params)
             } else {

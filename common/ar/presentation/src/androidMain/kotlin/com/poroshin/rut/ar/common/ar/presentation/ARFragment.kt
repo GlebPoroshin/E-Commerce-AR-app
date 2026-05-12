@@ -1,6 +1,7 @@
 package com.poroshin.rut.ar.common.ar.presentation
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,26 +24,35 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commitNow
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.poroshin.rut.ar.common.ar.domain.ArTrackingStatus
 import com.poroshin.rut.ar.common.ar.domain.ArObjectParams
+import com.poroshin.rut.ar.common.ar.presentation.model.ArAction
+import com.poroshin.rut.ar.common.ar.presentation.model.ArEvent
+import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController
+import com.poroshin.rut.ar.common.ar.presentation.internal.CustomArFragment
+import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
 import com.poroshin.rut.ar.common.cart.presentation.CartQuantityViewModel
 import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityEvent
 import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityState
-import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController
-import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController.SceneError
-import com.poroshin.rut.ar.common.ar.presentation.internal.CustomArFragment
-import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import kotlin.math.roundToInt
 
 class ARFragment : Fragment() {
 
     private val params: ArObjectParams? by lazy { arguments?.toArObjectParams() }
+
+    internal val viewModel: ArViewModel by inject()
     private val sceneController: ArSceneController by viewModels()
     private val cartQuantityViewModel by lazy { CartQuantityViewModel() }
 
@@ -53,6 +63,12 @@ class ARFragment : Fragment() {
         super.onCreate(savedInstanceState)
         sceneContainerId = View.generateViewId()
         cartQuantityViewModel.onEvent(CartQuantityEvent.SetSnapshot(params?.cartItem))
+
+        val modelUrl = params?.filePath.orEmpty()
+        viewModel.onEvent(ArEvent.OnCreate)
+        if (modelUrl.isNotBlank()) {
+            viewModel.onEvent(ArEvent.SetSingleMode(true))
+        }
     }
 
     override fun onCreateView(
@@ -101,7 +117,8 @@ class ARFragment : Fragment() {
                 MaterialTheme {
                     TopControlsOverlay(
                         hasParams = params != null,
-                        controller = sceneController,
+                        arViewModel = viewModel,
+                        sceneController = sceneController,
                     )
                 }
             }
@@ -121,7 +138,7 @@ class ARFragment : Fragment() {
                 MaterialTheme {
                     BottomOverlay(
                         hasParams = params != null,
-                        controller = sceneController,
+                        arViewModel = viewModel,
                         cartQuantityViewModel = cartQuantityViewModel,
                     )
                 }
@@ -148,7 +165,37 @@ class ARFragment : Fragment() {
         return root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.viewAction.collect { action -> handleAction(action) }
+                }
+            }
+        }
+    }
+
+    private fun handleAction(action: ArAction) {
+        when (action) {
+            is ArAction.ShowError -> {
+                Log.w(TAG, "AR error: ${action.message}")
+            }
+            is ArAction.NavigateBack -> {
+                parentFragmentManager.popBackStack()
+            }
+            is ArAction.LogTelemetry -> {
+                val paramsStr = action.params.entries.joinToString(" ") { "${it.key}=${it.value}" }
+                Log.i(TAG, "telemetry event=${action.name} $paramsStr")
+            }
+            ArAction.TriggerClearScene,
+            ArAction.TriggerReloadModel -> Unit
+        }
+    }
+
     companion object {
+        private const val TAG = "ARFragment"
+
         fun newInstance(): ARFragment = ARFragment()
     }
 }
@@ -156,38 +203,42 @@ class ARFragment : Fragment() {
 @Composable
 private fun TopControlsOverlay(
     hasParams: Boolean,
-    controller: ArSceneController,
+    arViewModel: ArViewModel,
+    sceneController: ArSceneController,
 ) {
     if (!hasParams) return
-    val uiState by controller.uiState.collectAsState()
-    val singleMode by controller.singleMode.collectAsState()
+    val arState by arViewModel.viewState.collectAsState()
+    val platformState by sceneController.uiState.collectAsState()
     TopControls(
         modifier = Modifier,
-        isSingleMode = singleMode,
-        uiState = uiState,
-        onToggleMode = { controller.setSingleMode(!singleMode) },
-        onClear = controller::requestClearAll,
+        isSingleMode = arState.isSingleMode,
+        placedModels = sceneController.uiState.value.placedModels,
+        isModelLoading = platformState.isModelLoading,
+        trackingStatus = platformState.trackingStatus,
+        errorMessage = arState.error,
+        onToggleMode = { arViewModel.onEvent(ArEvent.SetSingleMode(!arState.isSingleMode)) },
+        onClear = { arViewModel.onEvent(ArEvent.ClearAll) },
     )
 }
 
 @Composable
 private fun BottomOverlay(
     hasParams: Boolean,
-    controller: ArSceneController,
+    arViewModel: ArViewModel,
     cartQuantityViewModel: CartQuantityViewModel,
 ) {
     if (!hasParams) return
-    val uiState by controller.uiState.collectAsState()
+    val arState by arViewModel.viewState.collectAsState()
     val cartState by cartQuantityViewModel.viewState.collectAsState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        uiState.lastError?.let { error ->
+        arState.error?.let { errorMessage ->
             ErrorBanner(
                 modifier = Modifier.padding(horizontal = 24.dp),
-                error = error,
-                onRetry = controller::retryModelLoad,
+                message = errorMessage,
+                onRetry = { arViewModel.onEvent(ArEvent.RetryModelLoad) },
             )
         }
         CartPicker(
@@ -211,12 +262,15 @@ private fun MissingParamsOverlay(
 private fun TopControls(
     modifier: Modifier,
     isSingleMode: Boolean,
-    uiState: ArSceneController.UiState,
+    placedModels: Int,
+    isModelLoading: Boolean,
+    trackingStatus: ArTrackingStatus,
+    errorMessage: String?,
     onToggleMode: () -> Unit,
     onClear: () -> Unit,
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier.testTag("ar_screen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -225,17 +279,19 @@ private fun TopControls(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AssistChip(
+                modifier = Modifier.testTag("ar_mode_toggle"),
                 onClick = onToggleMode,
                 label = { Text(if (isSingleMode) "Режим: одна" else "Режим: несколько") },
             )
             AssistChip(
+                modifier = Modifier.testTag("ar_clear_btn"),
                 onClick = onClear,
-                enabled = uiState.placedModels > 0,
+                enabled = placedModels > 0,
                 label = { Text("Очистить") },
             )
         }
 
-        if (uiState.isModelLoading) {
+        if (isModelLoading) {
             LinearProgressIndicator(
                 modifier = Modifier
                     .padding(top = 4.dp)
@@ -243,7 +299,7 @@ private fun TopControls(
             )
         }
 
-        val trackingMessage = when (uiState.trackingStatus) {
+        val trackingMessage = when (trackingStatus) {
             ArTrackingStatus.SearchingSurface -> "Ищем подходящую плоскость — перемещайте устройство."
             ArTrackingStatus.Lost -> "Трекинг потерян. Наведите камеру на освещенную поверхность."
             ArTrackingStatus.Tracking -> null
@@ -256,9 +312,9 @@ private fun TopControls(
             )
         }
 
-        if (uiState.placedModels > 0) {
+        if (placedModels > 0) {
             Text(
-                text = "Объектов в сцене: ${uiState.placedModels}",
+                text = "Объектов в сцене: $placedModels",
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -305,7 +361,7 @@ private fun CartPicker(
 @Composable
 private fun ErrorBanner(
     modifier: Modifier,
-    error: SceneError,
+    message: String,
     onRetry: () -> Unit,
 ) {
     Surface(
@@ -321,14 +377,12 @@ private fun ErrorBanner(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = error.asMessage(),
+                text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            if (error == SceneError.ModelLoadingFailed) {
-                Button(onClick = onRetry) {
-                    Text("Повторить")
-                }
+            Button(onClick = onRetry) {
+                Text("Повторить")
             }
         }
     }
@@ -350,13 +404,4 @@ private fun MissingParamsMessage(modifier: Modifier) {
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
         )
     }
-}
-
-private fun SceneError.asMessage(): String = when (this) {
-    SceneError.ModelLoadingFailed -> "Не удалось загрузить модель. Проверьте файл и попробуйте снова."
-    SceneError.InvalidDimensions -> "Некорректные размеры модели. Проверьте width/height/depth и попробуйте снова."
-    SceneError.Collision -> "Модели не должны пересекаться. Выберите другое место."
-    SceneError.PlaneNotAllowed -> "Эта плоскость не подходит для размещения выбранного объекта."
-    SceneError.PlacementLimitReached -> "Достигнут лимит объектов в сцене. Очистите сцену или включите режим одной модели."
-    SceneError.ArNotAvailable -> "ARCore недоступен на устройстве. Попробуйте обновить сервисы Google Play."
 }

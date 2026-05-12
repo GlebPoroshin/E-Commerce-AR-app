@@ -9,11 +9,24 @@ struct ArScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var resetRequested = false
     @State private var showGuidance = true
-    @State private var isSingleMode = true
     @State private var isLoading = true
     @State private var loadError: String?
     @State private var preloadedModel: ModelEntity?
     @State private var preloadCancellable: AnyCancellable?
+
+    @StateObject private var arHolder = SharedVMHolder<ArState, ArEvent, ArAction, ArViewModel>(
+        viewModel: ArViewModel(),
+        initialState: ArState(
+            modelUrl: "",
+            isLoading: false,
+            isModelLoaded: false,
+            error: nil,
+            placedObjects: [],
+            isSingleMode: true,
+            currentScale: 1.0,
+            currentRotation: KotlinFloatArray(size: 3)
+        )
+    )
 
     @StateObject private var cartHolder = SharedVMHolder<CartQuantityState, CartQuantityEvent, CartQuantityAction, CartQuantityViewModel>(
         viewModel: CartQuantityViewModel(),
@@ -43,7 +56,8 @@ struct ArScreen: View {
                     onResetRequest: { resetRequested = false },
                     resetRequested: resetRequested,
                     showGuidance: showGuidance,
-                    isSingleMode: isSingleMode
+                    isSingleMode: arHolder.state.isSingleMode,
+                    arHolder: arHolder
                 )
                 .ignoresSafeArea()
 
@@ -59,12 +73,28 @@ struct ArScreen: View {
         }
         .onAppear {
             startPreload()
+
+            arHolder.start { action in
+                switch action {
+                case _ as ArAction.NavigateBack:
+                    dismiss()
+                default:
+                    break
+                }
+            }
+            arHolder.sendEvent(ArEvent.OnCreate())
+
             cartHolder.start()
             cartHolder.sendEvent(CartQuantityEvent.SetSnapshot(snapshot: makeSnapshot()))
         }
         .onDisappear {
+            arHolder.stop()
             cartHolder.stop()
         }
+    }
+
+    private var isSingleMode: Bool {
+        arHolder.state.isSingleMode
     }
 
     private var controls: some View {
@@ -90,7 +120,10 @@ struct ArScreen: View {
                         .clipShape(Circle())
                 }
 
-                Button { isSingleMode.toggle() } label: {
+                Button {
+                    let newMode = !isSingleMode
+                    arHolder.sendEvent(ArEvent.SetSingleMode(enabled: newMode))
+                } label: {
                     Text(isSingleMode ? "1" : "N")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
@@ -98,8 +131,12 @@ struct ArScreen: View {
                         .background(Color.black.opacity(0.3))
                         .clipShape(Circle())
                 }
+                .accessibilityIdentifier("ar_mode_toggle")
 
-                Button { resetRequested = true } label: {
+                Button {
+                    arHolder.sendEvent(ArEvent.ClearAll())
+                    resetRequested = true
+                } label: {
                     Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
                         .font(.system(size: 36))
                         .foregroundColor(.white)
@@ -167,6 +204,7 @@ struct ArScreen: View {
                     .padding(.horizontal, 24)
                 Button("Закрыть") { dismiss() }
                     .padding(.top, 8)
+                    .accessibilityIdentifier("ar_error_close_btn")
             }
             .padding()
         }
