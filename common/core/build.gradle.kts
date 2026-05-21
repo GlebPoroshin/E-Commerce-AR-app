@@ -20,7 +20,9 @@ kotlin {
     iosSimulatorArm64()
 
     sourceSets {
-        commonMain.dependencies {}
+        commonMain.dependencies {
+            api("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
+        }
         androidMain.dependencies {
 
             implementation(libs.cicerone)

@@ -1,3 +1,3 @@
 package com.poroshin.rut.ar.common.core
 
-actual fun defaultBaseUrl(): String = "http://localhost:8080"
+actual fun defaultBaseUrl(): String = "https://macbook-pro.taila8b851.ts.net"

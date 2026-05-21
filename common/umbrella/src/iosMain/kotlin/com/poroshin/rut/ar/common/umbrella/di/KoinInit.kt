@@ -16,8 +16,9 @@ fun initKoinIos(additionalModules: List<Module> = emptyList()) {
     }
 }
 
-fun doInitKoin(useMockFallback: Boolean) {
+fun doInitKoin(useMockFallback: Boolean, arDemoBlackBg: Boolean = false) {
     BackendConfig.setUseMockFallback(useMockFallback)
+    BackendConfig.setArDemoBlackBg(arDemoBlackBg)
     initKoinIos(listOf(pdpDataIOSModule))
     runBlocking {
         runCatching {
@@ -31,3 +32,5 @@ fun doInitKoin(useMockFallback: Boolean) {
 fun doInitKoin() {
     doInitKoin(useMockFallback = false)
 }
+
+fun isArDemoBlackBg(): Boolean = BackendConfig.isArDemoBlackBg()

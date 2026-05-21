@@ -20,6 +20,15 @@ object BackendConfig {
     }
 
     fun isMockFallbackEnabled(): Boolean = useMockFallback
+
+    private var arDemoBlackBg: Boolean = false
+
+    fun setArDemoBlackBg(value: Boolean) {
+        arDemoBlackBg = value
+    }
+
+    fun isArDemoBlackBg(): Boolean = false
+//    fun isArDemoBlackBg(): Boolean = arDemoBlackBg
 }
 
 expect fun defaultBaseUrl(): String
