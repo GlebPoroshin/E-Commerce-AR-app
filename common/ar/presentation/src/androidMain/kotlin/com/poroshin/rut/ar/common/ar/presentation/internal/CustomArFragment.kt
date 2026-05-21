@@ -141,7 +141,7 @@ class CustomArFragment : ArFragment(), Scene.OnUpdateListener {
     override fun onCreateSessionConfig(session: Session): Config {
         return super.onCreateSessionConfig(session).apply {
             planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-            lightEstimationMode = Config.LightEstimationMode.AMBIENT_INTENSITY
+            lightEstimationMode = Config.LightEstimationMode.DISABLED
         }
     }
 

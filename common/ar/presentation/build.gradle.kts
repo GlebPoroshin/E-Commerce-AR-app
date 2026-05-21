@@ -37,12 +37,15 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.compose.ui.tooling)
             implementation(libs.androidx.fragment)
             implementation(libs.google.arcore)
             implementation(libs.sceneform)
             implementation(libs.koin.android)
             implementation(projects.common.cart.domain)
             implementation(projects.common.cart.presentation)
+            implementation(projects.common.core)
         }
     }
 }

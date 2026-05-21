@@ -44,10 +44,6 @@ class ArViewModel(
 
     private fun onCreate() {
         val url = currentState.modelUrl
-        if (url.isBlank()) {
-            sendAction(ArAction.ShowError("No model URL provided."))
-            return
-        }
         updateState { copy(isLoading = true, error = null) }
         sendAction(
             ArAction.LogTelemetry(
@@ -61,7 +57,7 @@ class ArViewModel(
         val result = rotateModel(currentState.currentRotation, deltaDegrees)
         when (result) {
             is RotationResult.Updated -> updateState { copy(currentRotation = result.newRotation) }
-            is RotationResult.Rejected -> sendAction(ArAction.ShowError(result.reason))
+            is RotationResult.Rejected -> emitError(result.reason)
         }
     }
 
@@ -69,7 +65,7 @@ class ArViewModel(
         val result = scaleModel(currentState.currentScale, factor)
         when (result) {
             is ScaleResult.Updated -> updateState { copy(currentScale = result.newScale) }
-            is ScaleResult.Rejected -> sendAction(ArAction.ShowError(result.reason))
+            is ScaleResult.Rejected -> emitError(result.reason)
         }
     }
 
@@ -124,6 +120,10 @@ class ArViewModel(
     }
 
     private fun onShowSceneError(message: String) {
+        emitError(message)
+    }
+
+    private fun emitError(message: String) {
         updateState { copy(error = message) }
         sendAction(ArAction.ShowError(message))
     }

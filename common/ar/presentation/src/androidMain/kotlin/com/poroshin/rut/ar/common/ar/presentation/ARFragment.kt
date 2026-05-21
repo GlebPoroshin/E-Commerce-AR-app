@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -40,6 +44,8 @@ import com.poroshin.rut.ar.common.ar.presentation.model.ArAction
 import com.poroshin.rut.ar.common.ar.presentation.model.ArEvent
 import com.poroshin.rut.ar.common.ar.presentation.internal.ArSceneController
 import com.poroshin.rut.ar.common.ar.presentation.internal.CustomArFragment
+import com.poroshin.rut.ar.common.core.BackendConfig
+import android.graphics.Color
 import com.poroshin.rut.ar.common.ar.presentation.toArObjectParams
 import com.poroshin.rut.ar.common.cart.presentation.CartQuantityViewModel
 import com.poroshin.rut.ar.common.cart.presentation.model.CartQuantityEvent
@@ -83,26 +89,62 @@ class ARFragment : Fragment() {
             )
         }
 
-        val sceneContainer = FragmentContainerView(requireContext()).apply {
-            id = sceneContainerId
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT,
-            )
-        }
-        root.addView(sceneContainer)
+        if (BackendConfig.isArDemoBlackBg()) {
+            val blackBg = View(requireContext()).apply {
+                setBackgroundColor(Color.BLACK)
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                )
+            }
+            root.addView(blackBg)
+        } else {
+            val sceneContainer = FragmentContainerView(requireContext()).apply {
+                id = sceneContainerId
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                )
+            }
+            root.addView(sceneContainer)
 
-        val existing = childFragmentManager.findFragmentByTag(sceneTag) as? CustomArFragment
-        val targetFragment = existing ?: params?.let { CustomArFragment.newInstance(it) }
-        if (targetFragment != null) {
-            childFragmentManager.commitNow {
-                setReorderingAllowed(true)
-                replace(sceneContainerId, targetFragment, sceneTag)
+            val existing = childFragmentManager.findFragmentByTag(sceneTag) as? CustomArFragment
+            val targetFragment = existing ?: params?.let { CustomArFragment.newInstance(it) }
+            if (targetFragment != null) {
+                childFragmentManager.commitNow {
+                    setReorderingAllowed(true)
+                    replace(sceneContainerId, targetFragment, sceneTag)
+                }
             }
         }
 
         val density = resources.displayMetrics.density
         fun dp(dp: Int) = (dp * density).roundToInt()
+
+        val backOverlay = ComposeView(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                setMargins(dp(16), dp(12), 0, 0)
+            }
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    AssistChip(
+                        onClick = { parentFragmentManager.popBackStack() },
+                        label = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Назад",
+                            )
+                        },
+                    )
+                }
+            }
+        }
+        root.addView(backOverlay)
 
         val topOverlay = ComposeView(requireContext()).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -235,11 +277,7 @@ private fun BottomOverlay(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         arState.error?.let { errorMessage ->
-            ErrorBanner(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                message = errorMessage,
-                onRetry = { arViewModel.onEvent(ArEvent.RetryModelLoad) },
-            )
+            DarkPill(text = errorMessage)
         }
         CartPicker(
             state = cartState,
@@ -304,20 +342,26 @@ private fun TopControls(
             ArTrackingStatus.Lost -> "Трекинг потерян. Наведите камеру на освещенную поверхность."
             ArTrackingStatus.Tracking -> null
         }
-        trackingMessage?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
+        trackingMessage?.let { DarkPill(text = it) }
 
         if (placedModels > 0) {
-            Text(
-                text = "Объектов в сцене: $placedModels",
-                style = MaterialTheme.typography.bodySmall,
-            )
+            DarkPill(text = "Объектов в сцене: $placedModels")
         }
+    }
+}
+
+@Composable
+private fun DarkPill(text: String) {
+    Surface(
+        color = ComposeColor.Black.copy(alpha = 0.55f),
+        shape = MaterialTheme.shapes.small,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = ComposeColor.White,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
     }
 }
 
@@ -353,36 +397,6 @@ private fun CartPicker(
         } else {
             Button(onClick = onIncrease) {
                 Text("Добавить в корзину")
-            }
-        }
-    }
-}
-
-@Composable
-private fun ErrorBanner(
-    modifier: Modifier,
-    message: String,
-    onRetry: () -> Unit,
-) {
-    Surface(
-        modifier = modifier,
-        tonalElevation = 4.dp,
-        shadowElevation = 8.dp,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Button(onClick = onRetry) {
-                Text("Повторить")
             }
         }
     }
