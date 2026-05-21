@@ -10,10 +10,11 @@ struct iOSApp: App {
     )
 
     init() {
+        let arDemo = ProcessInfo.processInfo.arguments.contains("--ar-demo")
         #if DEBUG
-        KoinInitKt.doInitKoin(useMockFallback: true)
+        KoinInitKt.doInitKoin(useMockFallback: true, arDemoBlackBg: arDemo)
         #else
-        KoinInitKt.doInitKoin(useMockFallback: false)
+        KoinInitKt.doInitKoin(useMockFallback: false, arDemoBlackBg: arDemo)
         #endif
     }
 

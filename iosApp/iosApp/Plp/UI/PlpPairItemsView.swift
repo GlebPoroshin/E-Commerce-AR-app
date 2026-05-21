@@ -133,7 +133,7 @@ struct PlpErrorView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Text(message ?? "Не удалось загрузить каталог")
+            Text("Ой! Что-то пошло не так. Попробуйте еще раз")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.primary)
             Button("Повторить", action: onRetry)

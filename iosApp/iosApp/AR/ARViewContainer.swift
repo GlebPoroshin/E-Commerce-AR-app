@@ -222,7 +222,7 @@ struct ARViewContainer: UIViewRepresentable {
             setupGuidanceLabel(in: arView)
             setupCoachingOverlay(in: arView)
             if !hasValidModelDimensions {
-                let msg = "Invalid model size. Check width, height and depth"
+                let msg = "Некорректные размеры модели. Проверьте ширину, высоту и глубину"
                 updateGuidanceLabel(text: msg)
                 arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
             } else if let frame = arView.session.currentFrame {
@@ -334,7 +334,7 @@ struct ARViewContainer: UIViewRepresentable {
         @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView else { return }
             guard hasValidModelDimensions else {
-                let msg = "Invalid model size. Check width, height and depth"
+                let msg = "Некорректные размеры модели. Проверьте ширину, высоту и глубину"
                 updateGuidanceLabel(text: msg)
                 arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 return
@@ -347,7 +347,7 @@ struct ARViewContainer: UIViewRepresentable {
             let pt = gesture.location(in: arView)
 
             guard let hit = findPlacementHit(at: pt, in: arView) else {
-                let msg = "Surface not found. Try different angle/lighting"
+                let msg = "Поверхность не найдена. Попробуйте другой ракурс или освещение"
                 updateGuidanceLabel(text: msg)
                 arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 registerPlacementRetry(event: .placementrejectedsurface, details: "reason=no_plane_match")
@@ -470,7 +470,7 @@ struct ARViewContainer: UIViewRepresentable {
             in arView: ARView,
         ) {
             if !isSingleMode && placedEntities.count >= maxPlacedEntities {
-                let msg = "Scene limit reached. Clear scene or switch to single mode"
+                let msg = "Достигнут лимит объектов в сцене. Очистите сцену или включите режим одной модели"
                 updateGuidanceLabel(text: msg)
                 arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 logTelemetry(
@@ -512,7 +512,7 @@ struct ARViewContainer: UIViewRepresentable {
                     entity.scale = originalScale
                     snapEntityToPlane(entity, relativeTo: anchor)
                 }
-                updateGuidanceLabel(text: "Long press + drag for precise adjustment")
+                updateGuidanceLabel(text: "Долгое нажатие + перетаскивание — для точной настройки")
                 logTelemetry(
                     event: .placementsuccess,
                     details: "reason=move active=\(placedEntities.count) \(performanceSnapshotDetails())"
@@ -582,7 +582,7 @@ struct ARViewContainer: UIViewRepresentable {
                 snapEntityToPlane(entity, relativeTo: anchor)
                 if hasIntersectionWithPlacedEntities(entity) {
                     anchor.transform = previousTransform
-                    let msg = "Models should not intersect. Choose another surface"
+                    let msg = "Модели не должны пересекаться. Выберите другое место"
                     updateGuidanceLabel(text: msg)
                     arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                     registerPlacementRetry(
@@ -590,7 +590,7 @@ struct ARViewContainer: UIViewRepresentable {
                         details: "reason=drag_collision"
                     )
                 } else {
-                    updateGuidanceLabel(text: "Long press + drag for precise adjustment")
+                    updateGuidanceLabel(text: "Долгое нажатие + перетаскивание — для точной настройки")
                 }
             case .ended, .cancelled, .failed:
                 dragRaycast?.stopTracking(); dragRaycast = nil
@@ -602,18 +602,18 @@ struct ARViewContainer: UIViewRepresentable {
 
         private func loadAndConfigureModel(into anchor: AnchorEntity, in arView: ARView) {
             guard hasValidModelDimensions else {
-                let msg = "Invalid model size. Check width, height and depth"
+                let msg = "Некорректные размеры модели. Проверьте ширину, высоту и глубину"
                 updateGuidanceLabel(text: msg)
                 arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 removeAnchor(anchor)
                 return
             }
-            updateGuidanceLabel(text: "Loading model…")
+            updateGuidanceLabel(text: "Загрузка модели…")
 
             if let preloaded = preloadedModel?.clone(recursive: true) {
                 preloaded.transform = .identity
                 configure(entity: preloaded, on: anchor, in: arView)
-                updateGuidanceLabel(text: "Tap to move. Long press + drag.")
+                updateGuidanceLabel(text: "Тап — переместить. Долгое нажатие + перетаскивание.")
                 return
             }
 
@@ -624,7 +624,7 @@ struct ARViewContainer: UIViewRepresentable {
                 .sink(receiveCompletion: { [weak self] completion in
                     guard let self = self else { return }
                     if case .failure(let error) = completion {
-                        let msg = "Loading error: \(error.localizedDescription)"
+                        let msg = "Ошибка загрузки: \(error.localizedDescription)"
                         self.updateGuidanceLabel(text: msg)
                         self.arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                     }
@@ -632,7 +632,7 @@ struct ARViewContainer: UIViewRepresentable {
                     guard let self = self else { return }
                     entity.transform = .identity
                     self.configure(entity: entity, on: anchor, in: arView)
-                    self.updateGuidanceLabel(text: "Tap to move. Long press + drag.")
+                    self.updateGuidanceLabel(text: "Тап — переместить. Долгое нажатие + перетаскивание.")
                 })
         }
 
@@ -678,7 +678,7 @@ struct ARViewContainer: UIViewRepresentable {
             arView.installGestures([.rotation], for: entity)
 
             if hasIntersectionWithPlacedEntities(entity) {
-                let msg = "Models should not intersect. Choose another surface"
+                let msg = "Модели не должны пересекаться. Выберите другое место"
                 updateGuidanceLabel(text: msg)
                 arHolder.sendEvent(ArEvent.ShowSceneError(message: msg))
                 registerPlacementRetry(
@@ -963,14 +963,14 @@ struct ARViewContainer: UIViewRepresentable {
             switch status {
             case .tracking:
                 if hasValidModelDimensions {
-                    updateGuidanceLabel(text: "Tap to place. Long press + drag. Two fingers — rotate.")
+                    updateGuidanceLabel(text: "Тап — поставить. Долгое нажатие + перетаскивание. Двумя пальцами — вращать.")
                 }
             case .searchingsurface:
-                updateGuidanceLabel(text: "Searching for a suitable surface. Move your device")
+                updateGuidanceLabel(text: "Ищем подходящую плоскость — перемещайте устройство")
             case .lost:
-                updateGuidanceLabel(text: "Tracking lost. Point camera at a well-lit surface")
+                updateGuidanceLabel(text: "Трекинг потерян. Наведите камеру на освещённую поверхность")
             default:
-                updateGuidanceLabel(text: "Searching for a suitable surface. Move your device")
+                updateGuidanceLabel(text: "Ищем подходящую плоскость — перемещайте устройство")
             }
         }
 
@@ -1049,13 +1049,13 @@ struct ARViewContainer: UIViewRepresentable {
             if let existing = guidanceLabel {
                 existing.isHidden = !showGuidance
                 if (existing.text?.isEmpty ?? true) {
-                    existing.text = "Tap to place. Long press + drag. Two fingers — rotate."
+                    existing.text = "Тап — поставить. Долгое нажатие + перетаскивание. Двумя пальцами — вращать."
                 }
                 return
             }
 
             let label = UILabel()
-            label.text = "Tap to place. Long press + drag. Two fingers — rotate."
+            label.text = "Тап — поставить. Долгое нажатие + перетаскивание. Двумя пальцами — вращать."
             label.textAlignment = .center
             label.textColor = .white
             label.font = .systemFont(ofSize: 15, weight: .medium)

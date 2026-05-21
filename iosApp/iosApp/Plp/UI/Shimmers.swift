@@ -31,7 +31,7 @@ struct ShimmerView: View {
                     )
             )
             .onAppear {
-                withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: false)) {
+                withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
                     phase = 1.2
                 }
             }

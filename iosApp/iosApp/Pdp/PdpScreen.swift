@@ -19,9 +19,22 @@ struct PdpScreen: View {
     )
 
     @EnvironmentObject private var router: AppRouter
+    @State private var errorMessage: String?
 
     var body: some View {
         content
+            .alert(
+                "Ошибка",
+                isPresented: Binding(
+                    get: { errorMessage != nil },
+                    set: { if !$0 { errorMessage = nil } }
+                ),
+                presenting: errorMessage
+            ) { _ in
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: { msg in
+                Text(msg)
+            }
             .onAppear {
                 holder.start { action in
                     switch action {
@@ -38,6 +51,8 @@ struct PdpScreen: View {
                             cartPriceText: a.cartSnapshot?.priceText,
                             cartImageUrl: a.cartSnapshot?.imageUrl
                         )
+                    case let e as PdpAction.ShowError:
+                        errorMessage = e.message
                     default:
                         break
                     }
@@ -140,6 +155,20 @@ struct PdpScreen: View {
             }
             .navigationTitle("PDP")
             .navigationBarTitleDisplayMode(.inline)
+
+        case let error as PdpState.Error:
+            VStack(spacing: 12) {
+                Spacer()
+                Text(error.message ?? "Что-то пошло не так, попробуйте снова")
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                Button("Попробовать снова") {
+                    holder.sendEvent(PdpEvent.OnRetry())
+                }
+                .buttonStyle(.borderedProminent)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         default:
             EmptyView()

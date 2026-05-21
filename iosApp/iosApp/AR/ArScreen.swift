@@ -45,7 +45,10 @@ struct ArScreen: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            if !isLoading, loadError == nil, let preloadedModel {
+            if KoinInitKt.isArDemoBlackBg() {
+                Color.black.ignoresSafeArea()
+                controls.padding()
+            } else if !isLoading, loadError == nil, let preloadedModel {
                 ARViewContainer(
                     filePath: filePath,
                     preloadedModel: preloadedModel,
@@ -72,7 +75,9 @@ struct ArScreen: View {
             }
         }
         .onAppear {
-            startPreload()
+            if !KoinInitKt.isArDemoBlackBg() {
+                startPreload()
+            }
 
             arHolder.start { action in
                 switch action {
@@ -99,71 +104,56 @@ struct ArScreen: View {
 
     private var controls: some View {
         VStack(spacing: 12) {
-            HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 36))
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
+            topControls
+            Spacer()
+            bottomControls
+        }
+    }
+
+    private var topControls: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                chipIconButton(systemImage: "chevron.backward", enabled: true) { dismiss() }
+                chipButton(
+                    text: isSingleMode ? "Режим: одна" : "Режим: несколько",
+                    enabled: true,
+                    accessibilityId: "ar_mode_toggle"
+                ) {
+                    arHolder.sendEvent(ArEvent.SetSingleMode(enabled: !isSingleMode))
                 }
-
-                Spacer()
-
-                Button { showGuidance.toggle() } label: {
-                    Image(systemName: showGuidance ? "eye.slash.circle.fill" : "eye.circle.fill")
-                        .font(.system(size: 36))
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
+                chipButton(
+                    text: showGuidance ? "Подсказки вкл" : "Подсказки выкл",
+                    enabled: true
+                ) {
+                    showGuidance.toggle()
                 }
-
-                Button {
-                    let newMode = !isSingleMode
-                    arHolder.sendEvent(ArEvent.SetSingleMode(enabled: newMode))
-                } label: {
-                    Text(isSingleMode ? "1" : "N")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
-                }
-                .accessibilityIdentifier("ar_mode_toggle")
-
-                Button {
+                chipButton(
+                    text: "Очистить",
+                    enabled: !arHolder.state.placedObjects.isEmpty
+                ) {
                     arHolder.sendEvent(ArEvent.ClearAll())
                     resetRequested = true
-                } label: {
-                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-                        .font(.system(size: 36))
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
                 }
             }
 
-            if let content = cartHolder.state as? CartQuantityState.Content {
-                let quantity = Int(content.quantity)
-                HStack(spacing: 12) {
+            let placed = arHolder.state.placedObjects.count
+            if placed > 0 {
+                pill("Объектов в сцене: \(placed)")
+            }
+        }
+    }
+
+    private var bottomControls: some View {
+        if let content = cartHolder.state as? CartQuantityState.Content {
+            let quantity = Int(content.quantity)
+            return AnyView(
+                HStack(spacing: 8) {
                     if quantity > 0 {
-                        Button("-") {
-                            cartHolder.sendEvent(CartQuantityEvent.OnDecrease())
-                        }
-                        .buttonStyle(.bordered)
-
-                        Text("\(quantity)")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 8)
-
-                        Button("+") {
-                            cartHolder.sendEvent(CartQuantityEvent.OnIncrease())
-                        }
-                        .buttonStyle(.borderedProminent)
+                        Button("-") { cartHolder.sendEvent(CartQuantityEvent.OnDecrease()) }
+                            .buttonStyle(.bordered)
+                        pill("\(quantity)")
+                        Button("+") { cartHolder.sendEvent(CartQuantityEvent.OnIncrease()) }
+                            .buttonStyle(.borderedProminent)
                     } else {
                         Button("Добавить в корзину") {
                             cartHolder.sendEvent(CartQuantityEvent.OnIncrease())
@@ -171,11 +161,70 @@ struct ArScreen: View {
                         .buttonStyle(.borderedProminent)
                     }
                 }
-                .padding(8)
-                .background(Color.black.opacity(0.35))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
+                .padding(.bottom, 96)
+            )
         }
+        return AnyView(EmptyView())
+    }
+
+    @ViewBuilder
+    private func chipButton(
+        text: String,
+        enabled: Bool,
+        accessibilityId: String? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
+        let base = Button(action: action) {
+            Text(text)
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule().stroke(
+                        enabled ? Color.primary.opacity(0.4) : Color.primary.opacity(0.15),
+                        lineWidth: 1
+                    )
+                )
+                .foregroundColor(enabled ? .primary : .secondary)
+        }
+        .disabled(!enabled)
+        if let id = accessibilityId {
+            base.accessibilityIdentifier(id)
+        } else {
+            base
+        }
+    }
+
+    private func chipIconButton(
+        systemImage: String,
+        enabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule().stroke(
+                        enabled ? Color.primary.opacity(0.4) : Color.primary.opacity(0.15),
+                        lineWidth: 1
+                    )
+                )
+                .foregroundColor(enabled ? .primary : .secondary)
+        }
+        .disabled(!enabled)
+        .accessibilityLabel("Назад")
+    }
+
+    private func pill(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.black.opacity(0.55))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 
     private var loadingView: some View {
@@ -202,9 +251,14 @@ struct ArScreen: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
-                Button("Закрыть") { dismiss() }
-                    .padding(.top, 8)
-                    .accessibilityIdentifier("ar_error_close_btn")
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.backward")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
+                .padding(.top, 8)
+                .accessibilityLabel("Назад")
+                .accessibilityIdentifier("ar_error_close_btn")
             }
             .padding()
         }

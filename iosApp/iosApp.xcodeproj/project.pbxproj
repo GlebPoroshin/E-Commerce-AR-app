@@ -13,6 +13,9 @@
 		35103EB9367252D2F0DBA8CB /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 98ACA84D3252B9479DB46233 /* Pods_iosApp.framework */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		AA01000000000001 /* AppSmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000002 /* AppSmokeUITests.swift */; };
+		AA01000000000020 /* ScreenshotMaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000021 /* ScreenshotMaker.swift */; };
+		AA01000000000022 /* ArScreenshotMaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000023 /* ArScreenshotMaker.swift */; };
+		AA01000000000024 /* ArPreviewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000025 /* ArPreviewSnapshotTests.swift */; };
 		AA01000000000003 /* iosApp.app in Frameworks */ = {isa = PBXBuildFile; fileRef = 7555FF7B242A565900829871 /* iosApp.app */; };
 /* End PBXBuildFile section */
 
@@ -36,6 +39,9 @@
 		935440350F55CB16A2F9649E /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
 		98ACA84D3252B9479DB46233 /* Pods_iosApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA01000000000002 /* AppSmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSmokeUITests.swift; sourceTree = "<group>"; };
+		AA01000000000021 /* ScreenshotMaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotMaker.swift; sourceTree = "<group>"; };
+		AA01000000000023 /* ArScreenshotMaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArScreenshotMaker.swift; sourceTree = "<group>"; };
+		AA01000000000025 /* ArPreviewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArPreviewSnapshotTests.swift; sourceTree = "<group>"; };
 		AA01000000000004 /* iosAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD1EB8F018CD440D8C302887 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -152,6 +158,9 @@
 			isa = PBXGroup;
 			children = (
 				AA01000000000002 /* AppSmokeUITests.swift */,
+				AA01000000000021 /* ScreenshotMaker.swift */,
+				AA01000000000023 /* ArScreenshotMaker.swift */,
+				AA01000000000025 /* ArPreviewSnapshotTests.swift */,
 			);
 			path = iosAppUITests;
 			sourceTree = "<group>";
@@ -300,6 +309,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA01000000000001 /* AppSmokeUITests.swift in Sources */,
+				AA01000000000020 /* ScreenshotMaker.swift in Sources */,
+				AA01000000000022 /* ArScreenshotMaker.swift in Sources */,
+				AA01000000000024 /* ArPreviewSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
