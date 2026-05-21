@@ -107,7 +107,7 @@ private fun PlpError(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = message ?: "Не удалось загрузить каталог",
+            text = "Ой! Что-то пошло не так. Попробуйте еще раз",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )

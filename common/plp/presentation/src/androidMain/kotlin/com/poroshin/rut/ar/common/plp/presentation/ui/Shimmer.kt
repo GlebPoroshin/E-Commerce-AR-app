@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -48,8 +48,8 @@ fun Modifier.shimmer(cornerRadius: Dp = 0.dp): Modifier {
         targetValue = 1200f,
         animationSpec = infiniteRepeatable(
             animation = tween(
-                durationMillis = 1600,
-                easing = FastOutSlowInEasing
+                durationMillis = 1200,
+                easing = LinearEasing
             )
         ),
         label = "Translate"

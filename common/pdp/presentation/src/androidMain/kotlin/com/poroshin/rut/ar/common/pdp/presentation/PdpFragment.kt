@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
@@ -72,6 +73,8 @@ class PdpFragment : Fragment() {
                                 PdpEvent.OnDecreaseCart(contentState.product.sku)
                             )
                         },
+                        onRetryClick = { viewModel.onEvent(PdpEvent.OnRetry) },
+                        onBackClick = { router.exit() },
                     )
                 }
             }
@@ -100,6 +103,9 @@ class PdpFragment : Fragment() {
                     }
                     is PdpAction.OpenArCovering -> {
                         // TODO: handle covering navigation when implemented.
+                    }
+                    is PdpAction.ShowError -> {
+                        Toast.makeText(requireContext(), action.message, Toast.LENGTH_LONG).show()
                     }
                 }
             }

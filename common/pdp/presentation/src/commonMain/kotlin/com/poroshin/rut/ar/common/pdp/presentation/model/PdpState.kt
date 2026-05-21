@@ -13,4 +13,5 @@ sealed class PdpState : UiState {
         val cartQuantity: Int = 0,
     ) : PdpState()
 
+    data class Error(val message: String?) : PdpState()
 }

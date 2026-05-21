@@ -5,21 +5,31 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +43,7 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.poroshin.rut.ar.common.pdp.presentation.model.PdpState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PdpScreen(
     state: PdpState,
@@ -40,20 +51,67 @@ fun PdpScreen(
     onDeleteModelClick: (PdpState.Content) -> Unit,
     onIncreaseCartClick: (PdpState.Content) -> Unit,
     onDecreaseCartClick: (PdpState.Content) -> Unit,
+    onRetryClick: () -> Unit,
+    onBackClick: () -> Unit,
 ) {
-    when (state) {
-        is PdpState.Loading -> {
-            PdpLoading(modifier = Modifier.fillMaxSize())
-        }
-
-        is PdpState.Content -> {
-            PdpContent(
-                state = state,
-                onModelLoadClick = onModelLoadClick,
-                onDeleteModelClick = onDeleteModelClick,
-                onIncreaseCartClick = onIncreaseCartClick,
-                onDecreaseCartClick = onDecreaseCartClick,
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Товар") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                        )
+                    }
+                },
             )
+        },
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when (state) {
+                is PdpState.Loading -> {
+                    PdpLoading(modifier = Modifier.fillMaxSize())
+                }
+
+                is PdpState.Content -> {
+                    PdpContent(
+                        state = state,
+                        onModelLoadClick = onModelLoadClick,
+                        onDeleteModelClick = onDeleteModelClick,
+                        onIncreaseCartClick = onIncreaseCartClick,
+                        onDecreaseCartClick = onDecreaseCartClick,
+                    )
+                }
+
+                is PdpState.Error -> {
+                    PdpError(message = state.message, onRetry = onRetryClick)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PdpError(
+    message: String?,
+    onRetry: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = message ?: "Что-то пошло не так, попробуйте снова",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(onClick = onRetry) {
+            Text(text = "Попробовать снова")
         }
     }
 }

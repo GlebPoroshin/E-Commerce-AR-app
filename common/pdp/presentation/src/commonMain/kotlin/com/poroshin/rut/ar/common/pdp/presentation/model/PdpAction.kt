@@ -19,4 +19,6 @@ sealed class PdpAction : UiAction {
         val isFloor: Boolean,
         val patternUrl: String,
     ) : PdpAction()
+
+    data class ShowError(val message: String) : PdpAction()
 }

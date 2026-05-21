@@ -42,6 +42,7 @@ data class ProductPageInfo(
     val stock: Int? = null,
     val deliveryInfo: String? = null,
     val ar: ArInfo? = null,
+    val cartQuantity: Int = 0,
 )
 
 /**

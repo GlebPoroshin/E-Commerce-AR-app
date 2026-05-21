@@ -33,56 +33,87 @@ class GetPlpProductsUseCaseImpl(
     }
 
     private fun mockProducts(): List<Product> {
+        val image = "https://images.weserv.nl/?url=www.svgrepo.com/show/508699/landscape-placeholder.svg&output=png&w=600"
         return listOf(
             Product(
                 1000L,
-                "Диван Skandi",
-                "Мягкий велюр, дубовые ножки",
-                "18 000",
-                "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0…582/lmcode/kGthtXjO_EiIT47Y7XJboQ/92389573_01.jpg",
-                oldPrice = "24 990",
-                discount = 28,
-                rate = 4.6
+                "Диван «Осло»",
+                "Трёхместный, обивка из плотного велюра, дубовые ножки",
+                "42 990",
+                image,
+                oldPrice = "54 990",
+                discount = 22,
+                rate = 4.7
             ),
             Product(
                 1001L,
-                "Кресло Loft",
-                "Металл и кожа, минимализм",
-                "12 400",
-                "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0/f_auto/q_auto/w_180/h_180/c_pad/b_white/d_photoiscoming.png/v1756302231/lmcode/ZNvykuHReEiS2JiysaTtfw/89428038.png",
+                "Кресло «Хельсинки»",
+                "Поворотное, экокожа, металлический каркас",
+                "18 490",
+                image,
                 oldPrice = null,
                 discount = null,
-                rate = 4.2
+                rate = 4.3
             ),
             Product(
                 1002L,
-                "Стол Eames",
-                "Стекло, бук, стиль mid-century",
-                "22 990",
-                "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0…401/lmcode/aoz4PQriekCcblHRW7hgKg/92106858_01.jpg",
-                oldPrice = "26 990",
-                discount = 15,
+                "Обеденный стол «Берген»",
+                "Раздвижной, массив бука, до 8 персон",
+                "29 990",
+                image,
+                oldPrice = "36 500",
+                discount = 18,
                 rate = 4.8
             ),
             Product(
                 1003L,
-                "Тумба Nova",
-                "Компактное хранение",
-                "7 990",
-                "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0…753/lmcode/0xsaFgwZ0U6BXLKbAk16uA/90782652_01.jpg",
+                "Стеллаж «Лофт»",
+                "5 полок, металл и ЛДСП под дуб сонома",
+                "9 990",
+                image,
                 oldPrice = null,
                 discount = null,
-                rate = 4.0
+                rate = 4.1
             ),
             Product(
                 1004L,
-                "Лампа Orbit",
-                "Тёплый свет для уюта",
-                "3 490",
-                "https://cdn.lemanapro.ru/lmru/image/upload/dpr_2.0/f_auto/q_auto/w_180/h_180/c_pad/b_white/d_photoiscoming.png/v1756301982/lmcode/hHEINX8z0EuCLF3_MgoIPg/89428030.png",
-                oldPrice = "4 290",
-                discount = 19,
-                rate = 3.9
+                "Торшер «Норд»",
+                "Регулируемая высота, тёплый свет 2700K",
+                "5 490",
+                image,
+                oldPrice = "6 990",
+                discount = 21,
+                rate = 4.5
+            ),
+            Product(
+                1005L,
+                "Шкаф-купе «Альта»",
+                "Двери с зеркалом, ширина 180 см, орех",
+                "34 990",
+                image,
+                oldPrice = "41 990",
+                discount = 17,
+                rate = 4.4
+            ),
+            Product(
+                1006L,
+                "Журнальный столик «Мини»",
+                "Круглая столешница, мрамор, латунные ножки",
+                "12 290",
+                image,
+                oldPrice = null,
+                discount = null,
+                rate = 4.6
+            ),
+            Product(
+                1007L,
+                "Кровать «Сканди»",
+                "160×200, мягкое изголовье, ортопедическое основание",
+                "26 990",
+                image,
+                oldPrice = "32 490",
+                discount = 17,
+                rate = 4.7
             ),
         )
     }

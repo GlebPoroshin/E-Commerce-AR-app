@@ -65,15 +65,23 @@ class PdpViewModel(
 
     private fun load(sku: Long) {
         viewModelScope.launch {
-            val product = getProductPageInfo(GetPdpParams(sku))
-            val isModelExists = checkModelExistsUseCase(sku)
-            val currentQuantity = (viewState.value as? PdpState.Content)?.cartQuantity ?: 0
-            updateState {
-                PdpState.Content(
-                    product = product,
-                    isModelExists = isModelExists,
-                    cartQuantity = currentQuantity,
-                )
+            if (viewState.value !is PdpState.Content) {
+                updateState { PdpState.Loading }
+            }
+            runCatching {
+                val product = getProductPageInfo(GetPdpParams(sku))
+                val isModelExists = checkModelExistsUseCase(sku)
+                product to isModelExists
+            }.onSuccess { (product, isModelExists) ->
+                updateState {
+                    PdpState.Content(
+                        product = product,
+                        isModelExists = isModelExists,
+                        cartQuantity = product.cartQuantity,
+                    )
+                }
+            }.onFailure { throwable ->
+                updateState { PdpState.Error(throwable.message) }
             }
         }
     }
@@ -130,43 +138,54 @@ class PdpViewModel(
         val arInfo = state.product.ar ?: return
 
         viewModelScope.launch {
-            val path = downloadProductModelUseCase(
-                sku = product.sku,
-                url = arInfo.arResourceUrl,
-                version = arInfo.version ?: 1,
-                onProgress = { received, total ->
-                    if (total != null && total > 0L) {
-                        val percent = ((received.toDouble() / total.toDouble()) * 100.0)
-                            .toInt()
-                            .coerceIn(0, 100)
-                        val current = viewState.value
-                        if (current is PdpState.Content) {
-                            updateState { current.copy(loadingState = percent) }
+            runCatching {
+                downloadProductModelUseCase(
+                    sku = product.sku,
+                    url = arInfo.arResourceUrl,
+                    version = arInfo.version ?: 1,
+                    onProgress = { received, total ->
+                        if (total != null && total > 0L) {
+                            val percent = ((received.toDouble() / total.toDouble()) * 100.0)
+                                .toInt()
+                                .coerceIn(0, 100)
+                            val current = viewState.value
+                            if (current is PdpState.Content) {
+                                updateState { current.copy(loadingState = percent) }
+                            }
                         }
                     }
-                }
-            )
-
-            val finalState = viewState.value
-            if (finalState is PdpState.Content) {
-                updateState {
-                    finalState.copy(
-                        loadingState = null,
-                        isModelExists = true,
-                    )
-                }
-            }
-
-            sendAction(
-                PdpAction.OpenArObject(
-                    filePath = path,
-                    width = arInfo.width,
-                    height = arInfo.height,
-                    depth = resolveDepthMm(arInfo.width, arInfo.height, arInfo.depth),
-                    placement = arInfo.placement,
-                    cartSnapshot = product.toCartSnapshot(),
                 )
-            )
+            }.onSuccess { path ->
+                val finalState = viewState.value
+                if (finalState is PdpState.Content) {
+                    updateState {
+                        finalState.copy(
+                            loadingState = null,
+                            isModelExists = true,
+                        )
+                    }
+                }
+                sendAction(
+                    PdpAction.OpenArObject(
+                        filePath = path,
+                        width = arInfo.width,
+                        height = arInfo.height,
+                        depth = resolveDepthMm(arInfo.width, arInfo.height, arInfo.depth),
+                        placement = arInfo.placement,
+                        cartSnapshot = product.toCartSnapshot(),
+                    )
+                )
+            }.onFailure { throwable ->
+                val finalState = viewState.value
+                if (finalState is PdpState.Content) {
+                    updateState { finalState.copy(loadingState = null) }
+                }
+                sendAction(
+                    PdpAction.ShowError(
+                        throwable.message ?: "Что-то пошло не так, попробуйте снова"
+                    )
+                )
+            }
         }
     }
 
