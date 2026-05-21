@@ -65,6 +65,8 @@ class MainActivity : FragmentActivity(), CartFragment.Host {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        com.poroshin.rut.ar.common.core.BackendConfig.setArDemoBlackBg(false)
+
         registerFragmentCallbacks()
 
         setContent {
