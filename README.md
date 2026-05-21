@@ -1,227 +1,173 @@
 # E-Commerce AR App
 
-Кроссплатформное приложение электронной коммерции с технологией дополненной реальности (AR) для размещения 3D-моделей товаров в реальном пространстве.
+Мобильное приложение электронной коммерции с предпросмотром товаров в дополненной реальности. Каталог, корзина, размещение 3D-моделей мебели в пространстве пользователя. Сделано на Kotlin Multiplatform: общая бизнес-логика, нативный UI на каждой платформе.
 
-> **Дипломный проект (ВКР)** — исследование интеграции Kotlin Multiplatform с платформо-специфичным AR-рендерингом в мобильных приложениях.
+Дипломная работа. Тема — граница между shared-кодом KMP и платформенным AR-рендерингом: ARCore с Sceneform на Android, ARKit с RealityKit на iOS.
+
+Серверная часть — в отдельном репозитории [`AREcommerceApi`](https://github.com/GlebPoroshin/AREcommerceApi).
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.21-7F52FF?style=for-the-badge&logo=kotlin)](https://kotlinlang.org/)
 [![KMP](https://img.shields.io/badge/KMP-Multiplatform-4285F4?style=for-the-badge)](https://kotlinlang.org/docs/multiplatform-mobile-get-started.html)
 [![Android](https://img.shields.io/badge/Android-28+-3DDC84?style=for-the-badge&logo=android)](https://www.android.com/)
 [![iOS](https://img.shields.io/badge/iOS-16+-000?style=for-the-badge&logo=apple)](https://www.apple.com/ios)
-[![Gradle](https://img.shields.io/badge/Gradle-8.7.3-02303A?style=for-the-badge&logo=gradle)](https://gradle.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-## Демонстрация
+## Скриншоты
 
-### Основные экраны
-
-| Каталог товаров (PLP) | Карточка товара (PDP) | AR размещение |
+| Каталог (PLP) | Карточка (PDP) | AR-размещение |
 |:---:|:---:|:---:|
 | ![PLP](docs/screenshots/plp.png) | ![PDP](docs/screenshots/pdp.png) | ![AR](docs/screenshots/ar.png) |
-| Android (слева) · iOS (справа) | Скачать модель → Посмотреть в AR | ARCore (Android) · RealityKit (iOS) |
+| Android слева, iOS справа | Загрузка модели, переход в AR | ARCore и RealityKit |
 
-### Корзина и обработка ошибок
-
-| Корзина | Ошибка сети (PLP) | Ошибка загрузки 3D-модели |
+| Корзина | Ошибка сети на PLP | Ошибка загрузки модели |
 |:---:|:---:|:---:|
 | ![Cart](docs/screenshots/cart.png) | ![Error PLP](docs/screenshots/error_plp.png) | ![Error AR](docs/screenshots/error_ar.png) |
-| Счётчик на иконке, итого | Кнопка «Повторить» | Снекбар + диалог ошибки |
+| Счётчик на иконке и итог | Кнопка повторного запроса | Снекбар и диалог ошибки |
 
-## Ключевые функции
+## Что внутри
 
-### 📱 PLP (Product List Page)
-- **Каталог товаров** с shimmer-эффектом загрузки
-- **Пагинация** для оптимальной загрузки данных
-- **Адаптивный дизайн** на Jetpack Compose (Android) / SwiftUI (iOS)
+**PLP.** Список товаров с пагинацией. Shimmer на загрузке, ретрай при сетевой ошибке. Compose на Android, SwiftUI на iOS.
 
-### 🛍️ PDP (Product Detail Page)
-- **Детальная информация** о товаре (название, описание, характеристики)
-- **Галерея изображений** с поддержкой SVG (Android) и HD (iOS)
-- **Ценообразование** с отображением скидок и финальной цены
-- **Кнопка добавления в корзину** с интеграцией локального хранилища
+**PDP.** Карточка товара. Галерея изображений: SVG на Android через Coil3, HD-растр на iOS. Цена со скидкой, кнопка добавления в корзину, переход в AR.
 
-### 🔮 AR Placement (Дополненная реальность)
-- **Android**: ARCore 1.48.0 с использованием Sceneform 1.23.0
-- **iOS**: RealityKit + ARKit (iOS 16+)
-- **Поддержка поверхностей**: горизонтальные (полы) и вертикальные (стены)
-- **Мультиобъектный режим**: размещение нескольких товаров одновременно
-- **Жесты управления**:
-  - 🖐️ Перемещение (drag)
-  - ↻ Вращение (pinch rotate)
-  - ↕️ Масштаб (pinch zoom)
-- **Работает только на физических устройствах** (не поддерживается в эмуляторе)
+**AR.** Размещение 3D-моделей на горизонтальных и вертикальных поверхностях. Перемещение, поворот и масштаб жестами. Режим одного объекта и мульти-размещение. Форматы моделей: GLB (бинарный glTF) на Android, USDZ (Apple AR-формат) на iOS. Стек: ARCore 1.48 + Sceneform 1.23 на Android, ARKit + RealityKit на iOS 16+. Нужно физическое устройство, на симуляторе и эмуляторе AR не работает.
 
-#### Жизненный цикл 3D-модели на клиенте
+**Корзина.** Локальное хранилище SQLDelight, счётчик на иконке синхронизируется между экранами.
+
+### Жизненный цикл 3D-модели
 
 ![Жизненный цикл 3D-модели](docs/diagrams/model_lifecycle.svg)
 
-### 🛒 Cart (Корзина)
-- **Локальное хранилище** на SQLDelight 2.1.0
-- **Синхронизация** между PDP и корзиной
-- **Счётчик на иконке** с обновлением в реальном времени
-
 ## Архитектура
-
-### Структура модулей
 
 ![Архитектура мобильного приложения](docs/diagrams/mobile_packages.svg)
 
-### Clean Architecture
-
-Проект строго следует принципам Clean Architecture с разделением на три слоя:
+Каждая фича разбита на три слоя: `domain` (модели и интерфейсы), `data` (DataSource, репозитории, мапперы), `presentation` (ViewModel + State/Event/Action).
 
 ```
 common/
-├── core/                    # Конфигурация, утилиты, модели ошибок
-│   ├── BackendConfig        # Настройка Tailscale Funnel URL
-│   ├── NetworkError         # Доменная модель ошибок сети
-│   └── DeviceIdProvider     # Провайдер уникального ID устройства
-│
-├── mvi/                     # Базовые классы MVI паттерна
-│   └── SharedViewModel      # Базовый класс с StateFlow/SharedFlow
-│
-├── plp/                     # Feature: Product List Page
-│   ├── domain/              # Бизнес-логика и интерфейсы
-│   │   ├── models/Product   # Доменные модели товаров
-│   │   └── GetPlpProductsUseCase (interface)
-│   ├── data/                # Реализация, DataSource, сетевые модели
-│   │   ├── PlpDataSource    # HTTP клиент через Ktor
-│   │   └── GetPlpProductsUseCaseImpl
-│   └── presentation/        # UI-слой, State/Event/Action
-│       ├── PlpViewModel
-│       ├── PlpState (sealed class)
-│       ├── PlpEvent (sealed class)
-│       └── PlpAction (sealed class)
-│
-├── pdp/                     # Feature: Product Detail Page
-│   ├── domain/              # Интерфейсы и модели
-│   │   └── GetProductPageInfoUseCase (interface)
-│   ├── data/                # Реализация
-│   │   ├── PdpDataSource    # Ktor с DeviceID plugin
-│   │   └── GetProductPageInfoUseCaseImpl
-│   └── presentation/        # ViewModel/State/Event/Action
-│       └── PdpViewModel
-│
-├── ar/                      # Feature: Augmented Reality
-│   ├── domain/              # AR модели и типы размещения
-│   │   ├── ArModel          # 3D-модель товара
-│   │   └── PlacementType    # Горизонтальное/вертикальное размещение
-│   ├── data/                # AR DataSource и логика загрузки
-│   │   └── ArDataSource     # Получение GLTF моделей
-│   └── presentation/        # Платформо-специфичная визуализация
-│       ├── ArViewModel
-│       ├── ArFragment       # Android Compose Fragment
-│       └── ArScreen         # iOS SwiftUI Screen
-│
-├── cart/                    # Feature: Shopping Cart
-│   ├── domain/              # Cart models, UseCases
-│   │   ├── CartItem
-│   │   └── GetCartUseCase (interface)
-│   ├── data/                # SQLDelight persistence
-│   │   ├── CartDatabase
-│   │   └── CartRepositoryImpl (миграция legacy)
-│   └── presentation/        # CartQuantityViewModel
-│       └── CartQuantityViewModel
-│
-└── umbrella/                # DI Assembly (Koin)
-    └── KoinModules          # Полная инъекция зависимостей
+├── core/          конфигурация, NetworkError, DeviceIdProvider
+├── mvi/           базовый SharedViewModel
+├── plp/           список товаров
+├── pdp/           карточка
+├── ar/            AR-сцена и загрузка моделей
+├── cart/          корзина на SQLDelight
+└── umbrella/      DI-сборка на Koin
 ```
 
-### MVI ViewModel Pattern
+### MVI на SharedViewModel
 
 ```kotlin
 class PlpViewModel(
     private val getPlpProductsUseCase: GetPlpProductsUseCase,
 ) : SharedViewModel<PlpState, PlpEvent, PlpAction>(
-    initialState = PlpState.Loading
+    initialState = PlpState.Loading,
 ) {
     override suspend fun handleEvent(event: PlpEvent) = when (event) {
         is PlpEvent.LoadProducts -> loadProducts(event.page)
         is PlpEvent.RetryLoad -> loadProducts(0)
     }
-    
+
     private suspend fun loadProducts(page: Int) {
-        // Обновляет viewState: StateFlow<PlpState>
         updateState { copy(isLoading = true) }
-        // Отправляет одноразовые side-effects через viewAction: SharedFlow<PlpAction>
         sendAction(PlpAction.ScrollToTop)
     }
 }
 ```
 
-**Ключевые отличия от стандартного MVVM:**
-- `viewState: StateFlow<S>` вместо `state` (конвенция проекта)
-- `viewAction: SharedFlow<A>` вместо `actions` (одноразовые события)
-- `onEvent(event: E)` публичный, `handleEvent(event: E)` абстрактный
-- Никаких других публичных методов
+Что отличает от типового MVVM:
+
+- `viewState: StateFlow<S>` вместо `state`
+- `viewAction: SharedFlow<A>` для одноразовых эффектов
+- `onEvent` публичный, `handleEvent` абстрактный
+- Других публичных методов у ViewModel нет
+- State — sealed class (Loading / Content / Error), не data class с boolean-флагами
 
 ## Технологический стек
 
-### Shared Логика (KMP)
+### KMP shared
 
-| Компонент | Версия | Назначение |
-|-----------|--------|-----------|
-| **Kotlin** | 2.1.21 | Язык программирования |
-| **Ktor Client** | 3.2.3 | HTTP-клиент с custom DeviceID plugin |
-| **Koin** | 4.1.0 | Dependency Injection (Kotlin-first) |
-| **SQLDelight** | 2.1.0 | Типизированное хранилище данных |
-| **KotlinX Serialization** | 1.8.0 | JSON сериализация |
-| **MultiplatformSettings** | 1.3.0 | Key-value хранилище |
+| Библиотека | Версия | Зачем |
+|---|---|---|
+| Kotlin | 2.1.21 | Язык |
+| Ktor Client | 3.2.3 | HTTP и кастомный DeviceID-плагин |
+| Koin | 4.1.0 | DI |
+| SQLDelight | 2.1.0 | Локальная БД корзины |
+| KotlinX Serialization | 1.8.0 | JSON |
+| MultiplatformSettings | 1.3.0 | Key-value хранилище |
 
 ### Android
 
-| Компонент | Версия | Назначение |
-|-----------|--------|-----------|
-| **Jetpack Compose** | Latest | Декларативный UI |
-| **Compose Material3** | Latest | Material Design 3 компоненты |
-| **ARCore** | 1.48.0 | AR функциональность |
-| **Sceneform** | 1.23.0 | 3D-рендеринг, GLTF загрузка |
-| **Coil3** | 3.3.0 | Загрузка изображений (с SVG support) |
-| **Cicerone** | Latest | Навигация между экранами |
-| **Android Fragment** | Latest | Контейнер для ARFragment |
-| **EncryptedSharedPreferences** | Latest | Зашифрованное хранилище |
+| Компонент | Зачем |
+|---|---|
+| Jetpack Compose + Material3 | UI |
+| ARCore 1.48 + Sceneform 1.23 | AR и GLTF-рендеринг |
+| Coil3 3.3.0 | Картинки, включая SVG |
+| Cicerone | Навигация |
+| EncryptedSharedPreferences | Защищённое хранилище |
 
 ### iOS
 
-| Компонент | Версия | Назначение |
-|-----------|--------|-----------|
-| **SwiftUI** | iOS 16+ | Декларативный UI |
-| **RealityKit** | iOS 16+ | 3D-рендеринг GLTF моделей |
-| **ARKit** | iOS 16+ | AR функциональность |
-| **URLSession** | iOS 16+ | HTTP запросы через Ktor |
-| **Keychain** | iOS 16+ | Зашифрованное хранилище |
+| Компонент | Зачем |
+|---|---|
+| SwiftUI | UI, iOS 16+ |
+| RealityKit + ARKit | AR и USDZ |
+| URLSession | HTTP под Ktor |
+| Keychain | Защищённое хранилище |
 
-### Backend Integration
+### Backend
 
-- **Tailscale Funnel**: безопасное туннелирование HTTPS на локальный Spring Boot сервер
-- **DeviceID Plugin**: автоматическая передача ID устройства в заголовке каждого запроса
-- **Реализация**: `AREcommerceApi` (отдельный репозиторий)
+- Tailscale Funnel — туннель HTTPS на локальный Spring Boot
+- Кастомный Ktor-плагин подкладывает Device ID в заголовок каждого запроса
+- Репозиторий сервера: [`AREcommerceApi`](https://github.com/GlebPoroshin/AREcommerceApi)
 
 ## Требования к сборке
 
 ### Android
 
-- **Android Studio** Ladybug или новее
-- **Android SDK** 28+ (minSdk в build.gradle.kts = 28)
-- **Gradle** 8.7.3
-- **Kotlin** 2.1.21
-- **Физическое устройство** с поддержкой ARCore (AR-функции не работают в эмуляторе)
-  - Проверка: Settings → Google → ARCore → установлена актуальная версия
-- **JDK** 11+
+- Android Studio Ladybug или новее, JDK 11+
+- Android SDK 28 (minSdk в `build.gradle.kts`)
+- Gradle 8.7.3, Kotlin 2.1.21
+- Физическое устройство с актуальным ARCore (Settings → Google → ARCore)
 
 ### iOS
 
-- **Xcode** 15.0 или новее
-- **iOS Deployment Target**: 16.0+
-- **CocoaPods** (автоматически через KMP)
-- **Физическое устройство** iPhone/iPad (AR требует физического устройства)
-  - Эмулятор не поддерживает RealityKit + ARKit
-- **Apple Developer Account** (для сборки и запуска на устройстве)
+- Xcode 15 или новее
+- iOS Deployment Target 16.0
+- CocoaPods, подтягивается KMP-плагином
+- Физический iPhone или iPad, Apple Developer Account
+- RealityKit и ARKit на симуляторе не работают
 
-### Разработка (Общее)
+### Общее
 
-- **macOS** 12+
-- **Kotlin 2.1.21** (через gradle wrapper)
-- **Git** 2.30+
-- **Tailscale CLI** (для локального тестирования backend)
+- macOS 12+
+- Git 2.30+
+- Tailscale CLI для локального бэкенда
 
+## Сборка и запуск
+
+Клонируем и подтягиваем зависимости:
+
+```bash
+git clone https://github.com/GlebPoroshin/E-Commerce-AR-app.git
+cd E-Commerce-AR-app
+./gradlew build
+```
+
+### Android
+
+```bash
+./gradlew :androidApp:installDebug
+```
+
+Можно открыть проект в Android Studio и запустить конфигурацию `androidApp` на физическом устройстве.
+
+### iOS
+
+KMP-фреймворк собирается автоматически при сборке iOS-приложения. Откройте `iosApp/iosApp.xcodeproj` в Xcode, выберите подписанный provisioning profile и запустите на устройстве.
+
+Перед запуском убедитесь, что сервер `AREcommerceApi` доступен по URL из `BackendConfig` либо поднимите Tailscale Funnel локально.
+
+## Лицензия
+
+MIT, см. [LICENSE](LICENSE).
